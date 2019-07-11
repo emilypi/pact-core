@@ -9,10 +9,12 @@
 module Pact.Syntax.Type
 ( -- * Data
   Type(..)
+, TypeF(..)
 , Kind(..)
+, KindF(..)
 , GuardType(..)
 , Prim(..)
-  -- * Combinators
+  -- * Traversals
 , subtypes
 , tyvars
   -- * Prisms
@@ -22,8 +24,7 @@ module Pact.Syntax.Type
 , _TyLam
 , _TyApp
 , _TyGuard
-, _TyRowNil
-, _TyRowCons
+, _TyRow
 , _TyHole
 , _KType
 , _KArrow
@@ -39,7 +40,7 @@ module Pact.Syntax.Type
 , _GTyPact
 , _GTyUser
 , _GTyModule
-)where
+) where
 
 import GHC.Generics
 
@@ -47,6 +48,7 @@ import Control.DeepSeq
 import Control.Lens
 
 import Data.Functor.Foldable
+import Data.Map as Map
 
 data GuardType
   = GTyKeySet
@@ -102,6 +104,8 @@ instance Corecursive (Kind a) where
   embed (KHoleF a i) = KHole a i
 
 type Label = String
+type Module = String
+type Signature = String
 
 data Type name a
   = TyVar a (name a)
@@ -118,9 +122,7 @@ data Type name a
     -- ^ The type of β-reducible expressions
   | TyGuard a GuardType
     -- ^ The type of security primitives
-  | TyRowNil a
-    -- ^ The type of empty rows
-  | TyRowCons a Label (Type name a) (Type name a)
+  | TyRow a (Map Label (Type name a))
     -- ^ The type of non-empty types and their labels
   | TyHole a Int
     -- ^ Type : Type
@@ -136,13 +138,11 @@ data TypeF name a x
   | TyLamF a (name a) (Kind a) x
   | TyAppF a x x
   | TyGuardF a GuardType
-  | TyRowNilF a
-  | TyRowConsF a Label x x
+  | TyRowF a (Map Label x)
   | TyHoleF a Int
   deriving (Functor, Traversable, Foldable)
 
 type instance Base (Type name a) = TypeF name a
-
 
 instance Recursive (Type name a) where
   project (TyVar a n) = TyVarF a n
@@ -152,8 +152,7 @@ instance Recursive (Type name a) where
   project (TyLam a n k t) = TyLamF a n k t
   project (TyApp a t u) = TyAppF a t u
   project (TyGuard a g) = TyGuardF a g
-  project (TyRowNil a) = TyRowNilF a
-  project (TyRowCons a l t u) = TyRowConsF a l t u
+  project (TyRow a m) = TyRowF a m
   project (TyHole a i) = TyHoleF a i
 
 instance Corecursive (Type name a) where
@@ -164,8 +163,7 @@ instance Corecursive (Type name a) where
   embed (TyLamF a n k t) = TyLam a n k t
   embed (TyAppF a t u) = TyApp a t u
   embed (TyGuardF a g) = TyGuard a g
-  embed (TyRowNilF a) = TyRowNil a
-  embed (TyRowConsF a l t u) = TyRowCons a l t u
+  embed (TyRowF a m) = TyRow a m
   embed (TyHoleF a i) = TyHole a i
 
 tyvars :: Traversal' (Type name a) (name a)
@@ -177,7 +175,7 @@ subtypes f = \case
   TyApp a t u -> TyFun a <$> f t <*> f u
   TyLam a n k t -> TyLam a n k <$> f t
   TyForall a n k t -> TyForall a n k <$> f t
-  TyRowCons a l t u -> TyRowCons a l <$> f t <*> f u
+  TyRow a m -> TyRow a <$> traverse f m
   TyFun a d c -> TyFun a <$> f d <*> f c
   t -> pure t
 {-# INLINABLE subtypes #-}

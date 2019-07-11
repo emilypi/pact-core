@@ -4,7 +4,25 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE LambdaCase #-}
-module Pact.Syntax.Term where
+module Pact.Syntax.Term
+( -- * Data
+  Builtin(..)
+, Constant(..)
+, Term(..)
+, TermF(..)
+  -- * Traversals
+, subtypes
+, subterms
+, vars
+  -- * Prisms
+, _Var
+, _Let
+, _App
+, _Constant
+, _Annot
+, _Binding
+, _Error
+) where
 
 import GHC.Generics
 
@@ -15,7 +33,7 @@ import Data.Functor.Foldable
 import Data.Map
 import Data.Text
 
-import Pact.Syntax.Type
+import Pact.Syntax.Type hiding (subtypes)
 
 
 data Builtin a = BuiltinName a String
@@ -45,7 +63,7 @@ data Term tyname name loc
     -- ^ builtin terms
   | Annot loc (Term tyname name loc) (Type tyname loc)
     -- ^ type annotation
-  | Binding loc (Type tyname loc) (Map String (Term tyname name loc))
+  | Row loc (Type tyname loc) (Map String (Term tyname name loc))
     -- ^
   | Error loc (Type tyname loc)
     -- ^
@@ -57,7 +75,7 @@ data TermF tyname name a x
   = VarF a (name a)
   | LetF a (name a) (Type tyname a) x
   | AppF a x x
-  | BindingF a (Type tyname a) (Map String x)
+  | RowF a (Type tyname a) (Map String x)
   | ConstantF a (Constant a)
   | BuiltinF a (Builtin a)
   | AnnotF a x (Type tyname a)
@@ -72,7 +90,7 @@ instance Recursive (Term tyname name a) where
   project (App a t u) = AppF a t u
   project (Constant a c) = ConstantF a c
   project (Builtin a b) = BuiltinF a b
-  project (Binding a ty m) = BindingF a ty m
+  project (Row a ty m) = BindingF a ty m
   project (Annot a t ty) = AnnotF a t ty
   project (Error a ty) = ErrorF a ty
 
@@ -82,7 +100,7 @@ instance Corecursive (Term tyname name a) where
   embed (AppF a t u) = App a t u
   embed (ConstantF a c) = Constant a c
   embed (BuiltinF a b) = Builtin a b
-  embed (BindingF a ty m) = Binding a ty m
+  embed (RowF a ty m) = Row a ty m
   embed (AnnotF a t ty) = Annot a t ty
   embed (ErrorF a ty) = Error a ty
 
@@ -93,6 +111,7 @@ subterms f = \case
   Let a n ty t -> Let a n ty <$> f t
   Annot a t ty -> (\t' -> Annot a t' ty) <$> f t
   t -> pure t
+{-# INLINABLE subterms #-}
 
 subtypes :: Traversal' (Term tyname name a) (Type tyname a)
 subtypes f = \case
@@ -100,6 +119,8 @@ subtypes f = \case
   Annot a t ty -> Annot a t <$> f ty
   Error a ty -> Error a <$> f ty
   t -> pure t
+{-# INLINABLE subtypes #-}
 
 vars :: Traversal' (Term tyname name a) (name a)
 vars = _Var . traverse
+{-# INLINABLE vars #-}
