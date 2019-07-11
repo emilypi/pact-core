@@ -20,7 +20,7 @@ module Pact.Syntax.Term
 , _App
 , _Constant
 , _Annot
-, _Binding
+, _Row
 , _Error
 ) where
 
@@ -30,7 +30,7 @@ import Control.DeepSeq
 import Control.Lens
 
 import Data.Functor.Foldable
-import Data.Map
+import Data.HashMap.Lazy
 import Data.Text
 
 import Pact.Syntax.Type hiding (subtypes)
@@ -39,34 +39,40 @@ import Pact.Syntax.Type hiding (subtypes)
 data Builtin a = BuiltinName a String
   deriving (Eq, Show, Functor, Generic, NFData)
 
+-- | Is it a Schema or Table metaphor?
+data RowPosition = Schema | Table
+  deriving (Eq, Ord, Show, Generic, NFData)
+
 type Decimal = Double
 type Time = Double
 
 data Constant a
   = BuiltInInteger a Integer
   | BuiltInDecimal a Decimal
-  | BuiltInString a Text
+  | BuiltInString a {-# UNPACK #-} !Text
   | BuiltInTime a Time
   deriving (Eq, Show, Functor, Generic, NFData)
 
-data Term tyname name loc
-  = Var loc (name loc)
+data Term tyname name a
+  = Var a (name a)
     -- ^ named variable
-  | Let loc (name loc) (Type tyname loc) (Term tyname name loc)
+  | Let a (name a) (Type tyname a) (Term tyname name a)
     -- ^ let bindings. Note: 'let x:y = m in n' desugars to
     -- (\x:y -> n) m, hence we just make use of lam and app
-  | App loc (Term tyname name loc) (Term tyname name loc)
+  | App a (Term tyname name a) (Term tyname name a)
     -- ^ β-reduction
-  | Constant loc (Constant loc)
+  | Constant a (Constant a)
     -- ^ constant terms
-  | Builtin loc (Builtin loc)
+  | Builtin a (Builtin a)
     -- ^ builtin terms
-  | Annot loc (Term tyname name loc) (Type tyname loc)
+  | Annot a (Term tyname name a) (Type tyname a)
     -- ^ type annotation
-  | Row loc (Type tyname loc) (Map String (Term tyname name loc))
-    -- ^
-  | Error loc (Type tyname loc)
-    -- ^
+  | Row a RowPosition (Type tyname a) (HashMap Text (Term tyname name a))
+    -- ^ row terms as used in bindings, schema/table decls
+    -- In practice there is a semantic difference between declaring a row
+    -- and binding var names to row entries
+  | Error a (Type tyname a)
+    -- ^ the type of error terms
   deriving (Show, Functor, Generic, NFData)
 
 makePrisms ''Term
@@ -75,7 +81,7 @@ data TermF tyname name a x
   = VarF a (name a)
   | LetF a (name a) (Type tyname a) x
   | AppF a x x
-  | RowF a (Type tyname a) (Map String x)
+  | RowF a RowPosition (Type tyname a) (HashMap Text x)
   | ConstantF a (Constant a)
   | BuiltinF a (Builtin a)
   | AnnotF a x (Type tyname a)
@@ -90,7 +96,7 @@ instance Recursive (Term tyname name a) where
   project (App a t u) = AppF a t u
   project (Constant a c) = ConstantF a c
   project (Builtin a b) = BuiltinF a b
-  project (Row a ty m) = BindingF a ty m
+  project (Row a p ty m) = RowF a p ty m
   project (Annot a t ty) = AnnotF a t ty
   project (Error a ty) = ErrorF a ty
 
@@ -100,7 +106,7 @@ instance Corecursive (Term tyname name a) where
   embed (AppF a t u) = App a t u
   embed (ConstantF a c) = Constant a c
   embed (BuiltinF a b) = Builtin a b
-  embed (RowF a ty m) = Row a ty m
+  embed (RowF a p ty m) = Row a p ty m
   embed (AnnotF a t ty) = Annot a t ty
   embed (ErrorF a ty) = Error a ty
 

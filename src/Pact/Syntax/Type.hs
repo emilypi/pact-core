@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns #-}
 module Pact.Syntax.Type
 ( -- * Data
   Type(..)
@@ -48,7 +49,8 @@ import Control.DeepSeq
 import Control.Lens
 
 import Data.Functor.Foldable
-import Data.Map as Map
+import Data.HashMap.Lazy as HashMap
+
 
 data GuardType
   = GTyKeySet
@@ -114,46 +116,56 @@ data Type name a
     -- ^ The type of function types
   | TyForall a (name a) (Kind a) (Type name a)
     -- ^ The type of type schema (forall a)
-  | TyBuiltin a Prim
+  | TyBuiltin a !Prim
     -- ^ The type of builtin (primitive) types
   | TyLam a (name a) (Kind a) (Type name a)
     -- ^ The type of lambda abstractions
   | TyApp a (Type name a) (Type name a)
     -- ^ The type of β-reducible expressions
-  | TyGuard a GuardType
+  | TyGuard a !GuardType
     -- ^ The type of security primitives
-  | TyRow a (Map Label (Type name a))
+  | TyRow a (HashMap Label (Type name a))
     -- ^ The type of non-empty types and their labels
-  | TyHole a Int
-    -- ^ Type : Type
+  | TyProd a {-# UNPACK #-} !Int
+    -- ^ The types of finite products
+  | TyUnit a {-# UNPACK #-} !()
+    -- ^ The type of the terminal object in this category
+  | TyHole a {-# UNPACK #-} !Int
+    -- ^ The type of type Type. Used strictly for unification.
+    -- n.b.: if we ever wnat pi-types for capabilities, we need to
+    -- discuss universe polymorphism. This needs cumulativity
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable, NFData, Generic)
 
 makePrisms ''Type
 
 data TypeF name a x
-  = TyBuiltinF a Prim
+  = TyBuiltinF a !Prim
   | TyVarF a (name a)
   | TyFunF a x x
   | TyForallF a (name a) (Kind a) x
   | TyLamF a (name a) (Kind a) x
   | TyAppF a x x
-  | TyGuardF a GuardType
-  | TyRowF a (Map Label x)
-  | TyHoleF a Int
+  | TyGuardF a !GuardType
+  | TyRowF a (HashMap Label x)
+  | TyProdF a {-# UNPACK #-} !Int
+  | TyUnitF a {-# UNPACK #-} !()
+  | TyHoleF a {-# UNPACK #-} !Int
   deriving (Functor, Traversable, Foldable)
 
 type instance Base (Type name a) = TypeF name a
 
 instance Recursive (Type name a) where
   project (TyVar a n) = TyVarF a n
-  project (TyBuiltin a p) = TyBuiltinF a p
+  project (TyBuiltin a !p) = TyBuiltinF a p
   project (TyFun a dom cod) = TyFunF a dom cod
   project (TyForall a n k t) = TyForallF a n k t
   project (TyLam a n k t) = TyLamF a n k t
   project (TyApp a t u) = TyAppF a t u
-  project (TyGuard a g) = TyGuardF a g
+  project (TyGuard a !g) = TyGuardF a g
   project (TyRow a m) = TyRowF a m
-  project (TyHole a i) = TyHoleF a i
+  project (TyHole a !i) = TyHoleF a i
+  project (TyProd a !i) = TyProdF a i
+  project (TyUnit a !t) = TyUnitF a t
 
 instance Corecursive (Type name a) where
   embed (TyVarF a n) = TyVar a n
@@ -164,7 +176,9 @@ instance Corecursive (Type name a) where
   embed (TyAppF a t u) = TyApp a t u
   embed (TyGuardF a g) = TyGuard a g
   embed (TyRowF a m) = TyRow a m
-  embed (TyHoleF a i) = TyHole a i
+  embed (TyHoleF a !i) = TyHole a i
+  embed (TyProdF a !i) = TyProd a i
+  embed (TyUnitF a !t) = TyUnit a t
 
 tyvars :: Traversal' (Type name a) (name a)
 tyvars = _TyVar . traverse

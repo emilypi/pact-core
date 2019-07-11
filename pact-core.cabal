@@ -24,6 +24,7 @@ library
                      , bifunctors
                      , bytestring
                      , containers
+                     , Decimal
                      , deepseq
                      , free
                      , lens
