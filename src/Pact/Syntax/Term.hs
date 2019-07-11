@@ -10,7 +10,6 @@ module Pact.Syntax.Term
   Builtin(..)
 , Constant(..)
 , Term(..)
-, TermF(..)
   -- * Traversals
 , subtypes
 , subterms
@@ -38,6 +37,7 @@ import Control.Lens
 
 import Data.Functor.Foldable
 import Data.HashMap.Lazy
+import Data.List.NonEmpty as NonEmpty
 import Data.Text
 
 import Pact.Syntax.Type hiding (subtypes)
@@ -67,79 +67,41 @@ data FunPosition
   deriving (Eq, Show, Generic, NFData)
 
 
-data Term tyname name a
-  = Var a (name a)
+data Term a
+  = Var a Text
     -- ^ named variable
-  | Let a (name a) (Type tyname a) (Term tyname name a)
+  | Let a Text (Type a) (Term a)
     -- ^ let bindings. Note: 'let x:y = m in n' desugars to
     -- (\x:y -> n) m, hence we just make use of lam and app
-  | App a (Term tyname name a) (Term tyname name a)
+  | App a (NonEmpty (Term a)) (Term a)
     -- ^ β-reduction
-  | Fun a FunPosition (Type tyname a) (Term tyname name a)
+  | Fun a FunPosition (Type a) (Term a)
     -- ^ function terms
   | Constant a (Constant a)
     -- ^ constant terms
   | Builtin a (Builtin a)
     -- ^ builtin terms
-  | Annot a (Term tyname name a) (Type tyname a)
+  | Annot a (Term a) (Type a)
     -- ^ type annotation
-  | Row a RowPosition (Type tyname a) (HashMap Text (Term tyname name a))
+  | Row a RowPosition (Type a) (HashMap Text (Term a))
     -- ^ row terms as used in bindings, schema/table decls
     -- In practice there is a semantic difference between declaring a row
     -- and binding var names to row entries
-  | Error a (Type tyname a)
+  | Error a (Type a)
     -- ^ the type of error terms
   deriving (Show, Functor, Generic, NFData)
-
 makePrisms ''Term
 
-data TermF tyname name a x
-  = VarF a (name a)
-  | LetF a (name a) (Type tyname a) x
-  | AppF a x x
-  | RowF a RowPosition (Type tyname a) (HashMap Text x)
-  | ConstantF a (Constant a)
-  | BuiltinF a (Builtin a)
-  | AnnotF a x (Type tyname a)
-  | FunF a FunPosition (Type tyname a) x
-  | ErrorF a (Type tyname a)
-  deriving (Show, Functor, Generic, NFData)
-
-type instance Base (Term tyname name a) = TermF tyname name a
-
-instance Recursive (Term tyname name a) where
-  project (Var a n) = VarF a n
-  project (Let a n ty t) = LetF a n ty t
-  project (App a t u) = AppF a t u
-  project (Constant a c) = ConstantF a c
-  project (Builtin a b) = BuiltinF a b
-  project (Row a p ty m) = RowF a p ty m
-  project (Annot a t ty) = AnnotF a t ty
-  project (Error a ty) = ErrorF a ty
-  project (Fun a p ty t) = FunF a p ty t
-
-instance Corecursive (Term tyname name a) where
-  embed (VarF a n) = Var a n
-  embed (LetF a n ty t) = Let a n ty t
-  embed (AppF a t u) = App a t u
-  embed (ConstantF a c) = Constant a c
-  embed (BuiltinF a b) = Builtin a b
-  embed (RowF a p ty m) = Row a p ty m
-  embed (AnnotF a t ty) = Annot a t ty
-  embed (ErrorF a ty) = Error a ty
-  embed (FunF a p ty t) = Fun a p ty t
-
-
-subterms :: Traversal' (Term tyname name a) (Term tyname name a)
+subterms :: Traversal' (Term a) (Term a)
 subterms f = \case
-  App a t u -> App a <$> f t <*> f u
+  App a t u -> App a <$> (traverse f t) <*> f u
   Let a n ty t -> Let a n ty <$> f t
   Annot a t ty -> (\t' -> Annot a t' ty) <$> f t
   Fun a p ty t -> Fun a p ty <$> f t
   t -> pure t
 {-# INLINABLE subterms #-}
 
-subtypes :: Traversal' (Term tyname name a) (Type tyname a)
+subtypes :: Traversal' (Term a) (Type a)
 subtypes f = \case
   Let a n ty t -> (\ty' -> Let a n ty' t) <$> f ty
   Annot a t ty -> Annot a t <$> f ty
@@ -148,10 +110,9 @@ subtypes f = \case
   t -> pure t
 {-# INLINABLE subtypes #-}
 
-vars :: Traversal' (Term tyname name a) (name a)
+vars :: Traversal' (Term a) Text
 vars = _Var . traverse
 {-# INLINABLE vars #-}
-
 
 -- Patterns for function types
 pattern DefCap a ty t <- Fun a Capability ty t
