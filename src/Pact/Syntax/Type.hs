@@ -81,6 +81,8 @@ data Kind a
     -- ^ The kind of row-types
   | KHole a Int
     -- ^ The kind of unknown kinds Kind : Kind - used as a unification kind
+  | KConstraint a
+    -- ^ The kind of functor constraints of modules
   deriving (Eq, Ord, Show, Functor, Foldable, Traversable, NFData, Generic)
 makePrisms ''Kind
 
@@ -89,6 +91,7 @@ data KindF a x
   | KArrowF a x x
   | KRowF a x
   | KHoleF a Int
+  | KConstraintF a
   deriving (Functor, Traversable, Foldable)
 
 type instance Base (Kind a) = KindF a
@@ -98,12 +101,14 @@ instance Recursive (Kind a) where
   project (KArrow a dom cod) = KArrowF a dom cod
   project (KRow a row) = KRowF a row
   project (KHole a i) = KHoleF a i
+  project (KConstraint a) = KConstraintF a
 
 instance Corecursive (Kind a) where
   embed (KTypeF a) = KType a
   embed (KArrowF a dom cod) = KArrow a dom cod
   embed (KRowF a row) = KRow a row
   embed (KHoleF a i) = KHole a i
+  embed (KConstraintF a) = KConstraint a
 
 type Label = String
 type Module = String
