@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 module Pact.Syntax.Term
 ( -- * Data
   Builtin(..)
@@ -22,6 +23,12 @@ module Pact.Syntax.Term
 , _Annot
 , _Row
 , _Error
+  -- * Patterns
+, pattern DefCap
+, pattern DefNative
+, pattern Defun
+, pattern Table
+, pattern Schema
 ) where
 
 import GHC.Generics
@@ -40,7 +47,7 @@ data Builtin a = BuiltinName a String
   deriving (Eq, Show, Functor, Generic, NFData)
 
 -- | Is it a Schema or Table metaphor?
-data RowPosition = Schema | Table
+data RowPosition = SchemaPos | TablePos
   deriving (Eq, Ord, Show, Generic, NFData)
 
 type Decimal = Double
@@ -53,6 +60,13 @@ data Constant a
   | BuiltInTime a Time
   deriving (Eq, Show, Functor, Generic, NFData)
 
+data FunPosition
+  = Native
+  | Capability
+  | User
+  deriving (Eq, Show, Generic, NFData)
+
+
 data Term tyname name a
   = Var a (name a)
     -- ^ named variable
@@ -61,6 +75,8 @@ data Term tyname name a
     -- (\x:y -> n) m, hence we just make use of lam and app
   | App a (Term tyname name a) (Term tyname name a)
     -- ^ β-reduction
+  | Fun a FunPosition (Type tyname a) (Term tyname name a)
+    -- ^ function terms
   | Constant a (Constant a)
     -- ^ constant terms
   | Builtin a (Builtin a)
@@ -85,6 +101,7 @@ data TermF tyname name a x
   | ConstantF a (Constant a)
   | BuiltinF a (Builtin a)
   | AnnotF a x (Type tyname a)
+  | FunF a FunPosition (Type tyname a) x
   | ErrorF a (Type tyname a)
   deriving (Show, Functor, Generic, NFData)
 
@@ -99,6 +116,7 @@ instance Recursive (Term tyname name a) where
   project (Row a p ty m) = RowF a p ty m
   project (Annot a t ty) = AnnotF a t ty
   project (Error a ty) = ErrorF a ty
+  project (Fun a p ty t) = FunF a p ty t
 
 instance Corecursive (Term tyname name a) where
   embed (VarF a n) = Var a n
@@ -109,6 +127,7 @@ instance Corecursive (Term tyname name a) where
   embed (RowF a p ty m) = Row a p ty m
   embed (AnnotF a t ty) = Annot a t ty
   embed (ErrorF a ty) = Error a ty
+  embed (FunF a p ty t) = Fun a p ty t
 
 
 subterms :: Traversal' (Term tyname name a) (Term tyname name a)
@@ -116,6 +135,7 @@ subterms f = \case
   App a t u -> App a <$> f t <*> f u
   Let a n ty t -> Let a n ty <$> f t
   Annot a t ty -> (\t' -> Annot a t' ty) <$> f t
+  Fun a p ty t -> Fun a p ty <$> f t
   t -> pure t
 {-# INLINABLE subterms #-}
 
@@ -124,9 +144,20 @@ subtypes f = \case
   Let a n ty t -> (\ty' -> Let a n ty' t) <$> f ty
   Annot a t ty -> Annot a t <$> f ty
   Error a ty -> Error a <$> f ty
+  Fun a p ty t -> (\ty' -> Fun a p ty' t) <$> f ty
   t -> pure t
 {-# INLINABLE subtypes #-}
 
 vars :: Traversal' (Term tyname name a) (name a)
 vars = _Var . traverse
 {-# INLINABLE vars #-}
+
+
+-- Patterns for function types
+pattern DefCap a ty t <- Fun a Capability ty t
+pattern Defun a ty t <- Fun a User ty t
+pattern DefNative a ty t <- Fun a Native ty t
+
+-- Patterns for row types
+pattern Schema a ty m <- Row a SchemaPos ty m
+pattern Table a ty m <- Row a TablePos ty m
