@@ -48,7 +48,7 @@ data Kind a
   | KRow a [Kind a]
     -- ^ The kind of row-types
   | KHole a {-# UNPACK #-} !Int
-    -- ^ The kind of unknown kinds Kind : Kind - used as for unification
+    -- ^ The kind of unknown kinds Kind : Kind - used for unification
   | KConstraint a
     -- ^ The kind of functor constraints of modules
   | KCapability a
