@@ -18,6 +18,7 @@ extra-source-files:  CHANGELOG.md
 library
   exposed-modules:     Pact.AST.Binders
                      , Pact.AST.SourcePos
+                     , Pact.AST.Literals
                      , Pact.Environment
                      , Pact.Kinds
                      , Pact.Names

@@ -8,3 +8,9 @@
 -- AST binder data types
 --
 module Pact.AST.Binders where
+
+
+
+
+data Binder
+  = LiteralBinder SourceSpan

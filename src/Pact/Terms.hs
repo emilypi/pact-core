@@ -28,7 +28,7 @@ module Pact.Terms
 , _Var
 , _Let
 , _App
-, _Constant
+, _Lit
 , _Annot
 , _Row
 , _Error
@@ -51,7 +51,9 @@ import Data.List.NonEmpty as NonEmpty
 import Data.Text
 import Data.Word
 
-import Pact.Syntax.Type hiding (subtypes)
+import Pact.AST.Literals
+
+import Pact.Types hiding (subtypes)
 
 
 data Builtin a = BuiltinName a String
@@ -60,18 +62,6 @@ data Builtin a = BuiltinName a String
 -- | Is it a Schema or Table metaphor?
 data RowSort = Object | Schema | Table
   deriving (Eq, Ord, Show, Generic, NFData)
-
-type Decimal = Double
-type Time = Double
-
-data Constant a
-  = BuiltinInteger a Integer
-  | BuiltinDecimal a Decimal
-  | BuiltinTime    a Time
-  | BuiltinString  a {-# UNPACK #-} !Text
-  | BuiltinBool    a {-# UNPACK #-} !Bool
-  | BuiltinUint    a {-# UNPACK #-} !Word64
-  deriving (Eq, Show, Functor, Generic, NFData)
 
 data FunPosition
   = Native
@@ -90,10 +80,8 @@ data Term a
     -- ^ β-reduction
   | Fun a FunPosition (Type a) (Term a)
     -- ^ function terms
-  | Constant a (Constant a)
+  | Lit a (Literal a)
     -- ^ constant terms
-  | Builtin a (Builtin a)
-    -- ^ builtin terms
   | Annot a (Term a) (Type a)
     -- ^ type annotation
   | Row a RowSort (Type a) (HashMap Text (Term a))
