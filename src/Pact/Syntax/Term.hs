@@ -101,6 +101,7 @@ subterms f = \case
   t -> pure t
 {-# INLINABLE subterms #-}
 
+
 subtypes :: Traversal' (Term a) (Type a)
 subtypes f = \case
   Let a n ty t -> (\ty' -> Let a n ty' t) <$> f ty

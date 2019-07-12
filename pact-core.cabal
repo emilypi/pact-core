@@ -21,12 +21,13 @@ library
   -- other-extensions:
   build-depends:       base ^>=4.11.1.0
                      , aeson
-                     , bifunctors
                      , bytestring
+                     , concurrent-supply
                      , containers
                      , Decimal
                      , deepseq
-                     , free
+                     , filepath
+                     , hashable
                      , lens
                      , lens-aeson
                      , recursion-schemes

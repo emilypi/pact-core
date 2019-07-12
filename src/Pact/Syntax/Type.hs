@@ -10,9 +10,9 @@
 module Pact.Syntax.Type
 ( -- * Data
   Type(..)
-, Kind(..)
 , GuardType(..)
 , Prim(..)
+, TypeSort(..)
   -- * Traversals
 , subtypes
 , tyvars
@@ -25,10 +25,6 @@ module Pact.Syntax.Type
 , _TyGuard
 , _TyRow
 , _TyHole
-, _KType
-, _KArrow
-, _KRow
-, _KHole
 , _TyInteger
 , _TyDecimal
 , _TyBool
@@ -51,6 +47,9 @@ import Data.HashMap.Lazy as HashMap
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
 
+import Pact.Syntax.Kind
+
+
 
 data GuardType
   = GTyKeySet
@@ -72,20 +71,6 @@ data Prim
 
 makePrisms ''Prim
 
-data Kind a
-  = KType a
-    -- ^ The kind of concrete types (i.e. * or Type)
-  | KArrow a (Kind a) (Kind a)
-    -- ^ The kind of kind-level arrows Type -> Type
-  | KRow a (Kind a)
-    -- ^ The kind of row-types
-  | KHole a Int
-    -- ^ The kind of unknown kinds Kind : Kind - used as a unification kind
-  | KConstraint a
-    -- ^ The kind of functor constraints of modules
-  deriving (Eq, Ord, Show, Functor, Foldable, Traversable, NFData, Generic)
-makePrisms ''Kind
-
 type Label = Text
 type Module = Text
 type Signature = Text
@@ -102,13 +87,13 @@ data Type a
   | TyLam a (Kind a) (Type a)
     -- ^ The type of Λ-abstractions
   | TyApp a (Type a) (Type a)
-    -- ^ The type of β-reducible expressions
+    -- ^ The type of β-reducible types
   | TyGuard a !GuardType
-    -- ^ The type of security primitives
-  | TyRow a (HashMap  Text (Type a))
-    -- ^ The type of non-empty types and their labels
-  | TyProd a {-# UNPACK #-} !Int
-    -- ^ The types of finite products
+    -- ^ The type of security primitives TODO: pilinearity
+  | TyRow a (HashMap Text (Type a))
+    -- ^ The type of finite, heterogenous products (records)
+    -- tuples are a trivial case of this where each label is π_n
+    -- and each type is the same
   | TyUnit a
     -- ^ The type of the terminal object in this category
   | TyHole a {-# UNPACK #-} !Int
@@ -118,6 +103,13 @@ data Type a
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable, NFData, Generic)
 
 makePrisms ''Type
+
+data TypeSort
+  = Primitive
+  | Security
+  | Local
+  | Scoped
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 tyvars :: Traversal' (Type a) Text
 tyvars = _TyVar . traverse
