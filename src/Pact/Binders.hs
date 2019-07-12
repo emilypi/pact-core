@@ -42,10 +42,15 @@ import Pact.Types
 
 data Binder
   = LiteralBinder SourceSpan (Literal Binder)
+    -- ^ Literal bindings at some span
   | VarBinder SourceSpan Ident
+    -- ^ Variable bindings at some span
   | NamedBinder SourceSpan Ident Binder
+    -- ^ Bind an input to an identifier
   | PositionalBinder SourceSpan [Comment] Binder
+    -- ^ Source positional binder
   | TypedBinder (Type SourceAnn) Binder
+    -- ^ Binder with type annotation
   deriving Show
 
 makePrisms ''Binder

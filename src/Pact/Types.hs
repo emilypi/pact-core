@@ -55,6 +55,7 @@ import Data.Functor.Foldable
 import Data.HashMap.Lazy as HashMap
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
+import Data.Word
 
 import Pact.Kinds
 
@@ -104,7 +105,7 @@ data Type a
     -- and each type is the same
   | TyUnit a
     -- ^ The type of the terminal object in this category
-  | TyHole a {-# UNPACK #-} !Int
+  | TyHole a {-# UNPACK #-} !Word64
     -- ^ The type of type Type. Used strictly for unification.
     -- n.b.: if we ever wnat pilinear types for capabilities, we need to
     -- discuss universe polymorphism. This needs cumulativity

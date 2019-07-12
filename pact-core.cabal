@@ -16,10 +16,10 @@ category:            Pact
 extra-source-files:  CHANGELOG.md
 
 library
-  exposed-modules:     Pact.AST.Binders
-                     , Pact.AST.SourcePos
+  exposed-modules:     Pact.AST.SourcePos
                      , Pact.AST.Literals
                      , Pact.Environment
+                     , Pact.Binders
                      , Pact.Kinds
                      , Pact.Names
                      , Pact.Terms

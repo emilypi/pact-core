@@ -52,7 +52,6 @@ import Data.Text
 import Data.Word
 
 import Pact.AST.Literals
-
 import Pact.Types hiding (subtypes)
 
 

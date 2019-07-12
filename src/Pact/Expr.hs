@@ -25,7 +25,7 @@ module Pact.Expr
 , _Let
 , _LetRec
 , _IfThenElse
-, _Value
+, _PositionalValue
 , _Accessor
 , _ObjectUpdate
 , _TypedValue
@@ -50,18 +50,31 @@ type Binder = Int
 
 data Expr
   = Literal SourceSpan (Literal Expr)
+    -- ^ literal expressions with source pos
   | Var SourceSpan Ident
+    -- ^ individual variable expressions with source pos
   | App Expr Expr
+    -- ^ expression application
   | Lam Binder Expr
+    -- ^ lambda abstraction expressions (defun, defcap, defpact)
   | Let Declaration Expr
+    -- ^ let expressions
   | LetRec [Declaration] Expr
+    -- ^ recursive let expressions (separate from above for perf reasons)
   | IfThenElse Expr Expr Expr
-  | Value SourceSpan [Comment] Expr
+    -- ^ if/then/else trees
+  | PositionalValue SourceSpan [Comment] Expr
+    -- ^ some value at some source position
   | Accessor {-# UNPACK #-} !Text Expr
+    -- ^ object accessors a la x.y
   | ObjectUpdate Expr [(Text, Expr)]
+    -- ^ object update expressions `(update x { y : foo })`
   | TypedValue {-# UNPACK #-} !Bool Expr (Type SourceAnn)
+    -- ^ typed value expressions
   | Anonymous
+    -- ^ anonymous placeholder
   | Hole {-# UNPACK #-} !Text
+    -- ^ hole expressions
   deriving Show
 
 makePrisms ''Expr
