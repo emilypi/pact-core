@@ -7,7 +7,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BangPatterns #-}
-module Pact.Syntax.Type
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- The pact type system and its traversals
+--
+module Pact.Types
 ( -- * Data
   Type(..)
 , GuardType(..)
@@ -47,8 +56,7 @@ import Data.HashMap.Lazy as HashMap
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
 
-import Pact.Syntax.Kind
-
+import Pact.Kinds
 
 
 data GuardType
@@ -90,7 +98,7 @@ data Type a
     -- ^ The type of β-reducible types
   | TyGuard a !GuardType
     -- ^ The type of security primitives TODO: pilinearity
-  | TyRow a (HashMap Text (Type a))
+  | TyRow a !(HashMap Text (Type a))
     -- ^ The type of finite, heterogenous products (records)
     -- tuples are a trivial case of this where each label is π_n
     -- and each type is the same
@@ -101,7 +109,6 @@ data Type a
     -- n.b.: if we ever wnat pilinear types for capabilities, we need to
     -- discuss universe polymorphism. This needs cumulativity
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable, NFData, Generic)
-
 makePrisms ''Type
 
 data TypeSort

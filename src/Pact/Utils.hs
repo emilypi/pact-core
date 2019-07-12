@@ -1,4 +1,4 @@
-module Pact.Syntax.Utils where
+module Pact.Utils where
 
 
 import Data.Text

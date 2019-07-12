@@ -5,11 +5,21 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternSynonyms #-}
-module Pact.Syntax.Term
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- The pact term language and its traversals
+--
+module Pact.Terms
 ( -- * Data
   Builtin(..)
 , Constant(..)
 , Term(..)
+, RowSort(..)
   -- * Traversals
 , subtypes
 , subterms
@@ -26,8 +36,8 @@ module Pact.Syntax.Term
 , pattern DefCap
 , pattern DefNative
 , pattern Defun
-, pattern Table
-, pattern Schema
+, pattern DefTable
+, pattern DefSchema
 ) where
 
 import GHC.Generics
@@ -39,6 +49,7 @@ import Data.Functor.Foldable
 import Data.HashMap.Lazy
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
+import Data.Word
 
 import Pact.Syntax.Type hiding (subtypes)
 
@@ -47,17 +58,19 @@ data Builtin a = BuiltinName a String
   deriving (Eq, Show, Functor, Generic, NFData)
 
 -- | Is it a Schema or Table metaphor?
-data RowPosition = SchemaPos | TablePos
+data RowSort = Object | Schema | Table
   deriving (Eq, Ord, Show, Generic, NFData)
 
 type Decimal = Double
 type Time = Double
 
 data Constant a
-  = BuiltInInteger a Integer
-  | BuiltInDecimal a Decimal
-  | BuiltInString a {-# UNPACK #-} !Text
-  | BuiltInTime a Time
+  = BuiltinInteger a Integer
+  | BuiltinDecimal a Decimal
+  | BuiltinTime    a Time
+  | BuiltinString  a {-# UNPACK #-} !Text
+  | BuiltinBool    a {-# UNPACK #-} !Bool
+  | BuiltinUint    a {-# UNPACK #-} !Word64
   deriving (Eq, Show, Functor, Generic, NFData)
 
 data FunPosition
@@ -68,9 +81,9 @@ data FunPosition
 
 
 data Term a
-  = Var a Text
+  = Var a {-# UNPACK #-} !Text
     -- ^ named variable
-  | Let a Text (Type a) (Term a)
+  | Let a {-# UNPACK #-} !Text (Type a) (Term a)
     -- ^ let bindings. Note: 'let x:y = m in n' desugars to
     -- (\x:y -> n) m, hence we just make use of lam and app
   | App a (NonEmpty (Term a)) (Term a)
@@ -83,7 +96,7 @@ data Term a
     -- ^ builtin terms
   | Annot a (Term a) (Type a)
     -- ^ type annotation
-  | Row a RowPosition (Type a) (HashMap Text (Term a))
+  | Row a RowSort (Type a) (HashMap Text (Term a))
     -- ^ row terms as used in bindings, schema/table decls
     -- In practice there is a semantic difference between declaring a row
     -- and binding var names to row entries
@@ -100,7 +113,6 @@ subterms f = \case
   Fun a p ty t -> Fun a p ty <$> f t
   t -> pure t
 {-# INLINABLE subterms #-}
-
 
 subtypes :: Traversal' (Term a) (Type a)
 subtypes f = \case
@@ -121,5 +133,5 @@ pattern Defun a ty t <- Fun a User ty t
 pattern DefNative a ty t <- Fun a Native ty t
 
 -- Patterns for row types
-pattern Schema a ty m <- Row a SchemaPos ty m
-pattern Table a ty m <- Row a TablePos ty m
+pattern DefSchema a ty m <- Row a Schema ty m
+pattern DefTable a ty m <- Row a Table ty m

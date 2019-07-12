@@ -7,7 +7,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeInType #-}
-module Pact.Syntax.Names
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- Names of various shapes and sizes
+--
+module Pact.Names
 ( -- * Data
   Ident(..)
 , NameSort(..)
@@ -44,7 +53,7 @@ import Data.Text
 import Data.Word
 
 
-import Pact.Syntax.Utils
+import Pact.Utils
 
 data Ident
   = Ident {-# UNPACK #-} !Text

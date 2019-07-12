@@ -8,7 +8,16 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Pact.Syntax.Kind
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- Pact kind system
+--
+module Pact.Kinds
 ( -- * Data
   Kind(..)
   -- * Prisms
@@ -18,6 +27,8 @@ module Pact.Syntax.Kind
 , _KHole
 , _KConstraint
 , _KCapability
+  -- * Traversals
+, subkinds
 ) where
 
 
@@ -27,7 +38,8 @@ import Control.DeepSeq
 import Control.Lens
 import Data.Text
 
-
+-- | The Pact kind system
+--
 data Kind a
   = KType a
     -- ^ The kind of concrete types (i.e. * or Type)
@@ -52,3 +64,12 @@ instance Show a => Show (Kind a) where
     KConstraint _ -> "Constraint"
     KRow _ r -> show $ fmap show r
     KCapability _ -> "Capability"
+
+-- | Traverse over all subkinds of a given kind
+--
+subkinds :: Traversal' (Kind a) (Kind a)
+subkinds f = \case
+  KArrow a k k' -> KArrow a <$> f k <*> f k'
+  KRow a ks -> KRow a <$> traverse f ks
+  k -> pure k
+{-# INLINABLE subkinds #-}

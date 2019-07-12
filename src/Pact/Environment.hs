@@ -5,7 +5,16 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Pact.Syntax.Environment where
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- Type analysis environment with primitive types and names
+--
+module Pact.Environment where
 
 
 import GHC.Generics
@@ -16,16 +25,16 @@ import Control.Lens
 import Data.HashMap.Strict as HashMap
 import Data.Text
 
-import Pact.Syntax.Kind
-import Pact.Syntax.Names
-import Pact.Syntax.SourcePos
-import Pact.Syntax.Type
+import Pact.AST.SourcePos
+import Pact.Kinds
+import Pact.Names
+import Pact.Types
 
 
 data Environment = Environment
-    { _envNames :: !(HashMap Text (Type SourceAnn))
-    , _envTypes :: !(HashMap Text ((Kind SourceAnn), TypeSort))
-    } deriving (Show, Generic, NFData)
+  { _envNames :: !(HashMap Text (Type SourceAnn))
+  , _envTypes :: !(HashMap Text ((Kind SourceAnn), TypeSort))
+  } deriving (Show, Generic, NFData)
 
 envNames :: Lens' Environment (HashMap Text (Type SourceAnn))
 envNames = lens _envNames (\t b -> t { _envNames = b })
@@ -55,14 +64,14 @@ primTypes :: HashMap Text (Kind SourceAnn, TypeSort)
 primTypes = HashMap.fromList
   [ ("integer", (primKind, Primitive))
   , ("boolean", (primKind, Primitive))
-  , ("time", (primKind, Primitive))
-  , ("string", (primKind, Primitive))
+  , ("time   ", (primKind, Primitive))
+  , ("string" , (primKind, Primitive))
   , ("decimal", (primKind, Primitive))
-  , ("guard", (primKind, Security))
+  , ("guard"  , (primKind, Security))
   ]
 
 primNames :: HashMap Text (Type SourceAnn)
 primNames = HashMap.fromList
-  [ ("true", primType TyBool)
+  [ ("true" , primType TyBool)
   , ("false", primType TyBool)
   ]

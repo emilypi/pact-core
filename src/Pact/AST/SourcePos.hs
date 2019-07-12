@@ -2,7 +2,16 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
-module Pact.Syntax.SourcePos
+-- |
+-- Copyright :  (c) Emily Pillmore 2019-2019
+-- License   :  BSD-2-Clause
+-- Maintainer:  Emily Pillmore <emily@kadena.io>
+-- Stability :  experimental
+-- Portability: non-portable
+--
+-- Source position tracking
+--
+module Pact.AST.SourcePos
 ( -- * Data
   SourcePos(..)
 , SourceSpan(..)
@@ -33,7 +42,7 @@ import Data.Word
 
 import System.FilePath
 
-import Pact.Syntax.Utils
+import Pact.Utils
 
 type Comment = Text
 type SourceAnn = (SourceSpan, [Comment])

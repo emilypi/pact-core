@@ -16,7 +16,14 @@ category:            Pact
 extra-source-files:  CHANGELOG.md
 
 library
-  -- exposed-modules:
+  exposed-modules:     Pact.AST.Binders
+                     , Pact.AST.SourcePos
+                     , Pact.Environment
+                     , Pact.Kinds
+                     , Pact.Names
+                     , Pact.Terms
+                     , Pact.Types
+                     , Pact.Utils
   -- other-modules:
   -- other-extensions:
   build-depends:       base ^>=4.11.1.0
