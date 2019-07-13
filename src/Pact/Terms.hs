@@ -31,6 +31,7 @@ module Pact.Terms
 , _Lit
 , _Fun
 , _Annot
+, _Sig
 , _Row
 , _Error
   -- * Patterns
@@ -113,12 +114,15 @@ subtypes f = \case
   Fun a p ty t -> (\ty' -> Fun a p ty' t) <$> f ty
   Sig a ty -> Sig a <$> f ty
   t -> pure t
-
 {-# INLINABLE subtypes #-}
 
 vars :: Traversal' (Term a) Text
 vars = _Var . traverse
 {-# INLINABLE vars #-}
+
+sigs :: Traversal' (Term a) (Type a)
+sigs = _Sig . traverse
+{-# INLINABLE sigs #-}
 
 -- Patterns for function types
 pattern DefCap a ty t <- Fun a Capability ty t

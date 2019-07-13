@@ -22,11 +22,16 @@ module Pact.Module
 , moduleName
 , moduleDefns
 , moduleExports
+, moduleImports
 , moduleTerms
+, interfaceName
+, interfaceDefns
+, interfaceTerms
+, interfaceImports
 ) where
 
 
-import GHC.Generics
+import GHC.Generics (Generic)
 
 import Control.DeepSeq
 import Control.Lens
@@ -42,8 +47,10 @@ data Module a = Module
   { _moduleName :: !ModuleName
   , _moduleDefns :: [Declaration a]
   , _moduleExports :: [Text]
+  , _moduleImports :: [ModuleName]
+  , _moduleConstraints :: [ModuleName]
   , _moduleTerms :: [Term a]
-  } deriving (Eq, Show, Functor, Eq, Generic, NFData)
+  } deriving (Eq, Show, Functor, Generic, NFData)
 
 makeLenses ''Module
 
@@ -51,7 +58,8 @@ makeLenses ''Module
 data Interface a = Interface
   { _interfaceName :: !ModuleName
   , _interfaceDefns :: [Declaration a]
+  , _interfaceImports :: [ModuleName]
   , _interfaceTerms :: [Term a]
-  , _interfaceSigs :: [Sig a]
-  }
-  
+  } deriving (Eq, Show, Functor, Generic, NFData)
+
+makeLenses ''Interface

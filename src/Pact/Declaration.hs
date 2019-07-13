@@ -19,6 +19,8 @@ module Pact.Declaration
   -- * Prisms
 , _TermDecl
 , _ConstantDecl
+, _ImportDecl
+, _CommentDecl
 ) where
 
 
@@ -30,14 +32,26 @@ import Data.Hashable
 import Data.Text
 
 import Pact.AST.Literals
+import Pact.Names
 import Pact.Terms
 import Pact.Types
 
 
-type CoreName = Int
-
 data Declaration a
-  = TermDecl CoreName (Term a) (Type a)
-  | ConstantDecl CoreName !(Literal a)
+  = TermDecl {-# UNPACK #-} !Text (Term a) (Type a)
+  | ConstantDecl {-# UNPACK #-} !Text !(Literal a)
+  | ImportDecl {-# UNPACK #-} !ModuleName
+  | CommentDecl {-# UNPACK #-} !Text
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration
+
+
+terms :: Traversal' (Declaration a) (Term a)
+terms f = \case
+  TermDecl n t ty -> (\t' -> TermDecl n t' ty) <$> f t
+  t -> pure t
+
+types :: Traversal' (Declaration a) (Type a)
+types f = \case
+  TermDecl n t ty -> TermDecl n t <$> f ty
+  t -> pure t
