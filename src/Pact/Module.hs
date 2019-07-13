@@ -38,7 +38,7 @@ import Pact.Declaration
 import Pact.Names
 import Pact.Terms
 
-data Module a  = Module
+data Module a = Module
   { _moduleName :: !ModuleName
   , _moduleDefns :: [Declaration a]
   , _moduleExports :: [Text]
@@ -46,3 +46,12 @@ data Module a  = Module
   } deriving (Eq, Show, Functor, Eq, Generic, NFData)
 
 makeLenses ''Module
+
+
+data Interface a = Interface
+  { _interfaceName :: !ModuleName
+  , _interfaceDefns :: [Declaration a]
+  , _interfaceTerms :: [Term a]
+  , _interfaceSigs :: [Sig a]
+  }
+  

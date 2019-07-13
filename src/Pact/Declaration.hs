@@ -39,5 +39,5 @@ type CoreName = Int
 data Declaration a
   = TermDecl CoreName (Term a) (Type a)
   | ConstantDecl CoreName !(Literal a)
-  deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData, Hashable)
+  deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration

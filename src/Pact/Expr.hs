@@ -42,11 +42,9 @@ import Data.Text
 import Pact.AST.Literals
 import Pact.AST.SourcePos
 import Pact.Binders
+import Pact.Declaration
 import Pact.Names
 import Pact.Types
-
-
-type Declaration = Int
 
 data Expr
   = Literal SourceSpan (Literal Expr)
@@ -55,7 +53,7 @@ data Expr
     -- ^ individual variable expressions with source pos
   | App Expr Expr
     -- ^ expression application
-  | Lam Binder Expr
+  | Fun Binder Expr
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
   | Let Declaration Expr
     -- ^ let expressions
@@ -70,7 +68,7 @@ data Expr
   | ObjectUpdate Expr [(Text, Expr)]
     -- ^ object update expressions `(update x { y : foo })`
   | TypedValue {-# UNPACK #-} !Bool Expr (Type SourceAnn)
-    -- ^ typed value expressions
+    -- ^ typed value expression
   | Anonymous
     -- ^ anonymous placeholder
   | Hole {-# UNPACK #-} !Text
