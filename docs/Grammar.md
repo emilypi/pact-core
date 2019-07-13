@@ -16,7 +16,6 @@ module ::= '(' 'module' ident kset doc_or_meta decl_list ')'
 interface ::= '(' 'interface' ident doc_or_meta sig_list ')'
 
 (* top level declarations *)
-const_decl ::= defconst
 sig_list ::= defconst | defun_sig
 decl_list ::= imports decls
 imports ::= '(' use ')' { '(' use ')' }
@@ -63,7 +62,7 @@ ident      ::= letter { ('-' | letter | number) }
 
 (* All literals *)
 lit ::= string_lit | symbol | integer | decimal | bool
-        bool | list_lit | object_lit | table
+        bool | list_lit | object_lit | table | kset
 
 string_lit           ::= '\"' string '\"'
 symbol               ::= '\'' ident
