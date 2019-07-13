@@ -124,7 +124,7 @@ tyvars = _TyVar . traverse
 subtypes :: Traversal' (Type a) (Type a)
 subtypes f = \case
   TyApp a t u -> TyApp a <$> f t <*> f u
-  TyLam a k t -> TyLam a k <$> f t
+  TyAbs a k t -> TyAbs a k <$> f t
   TyForall a n k t -> TyForall a n k <$> f t
   TyRow a m -> TyRow a <$> traverse f m
   TyFun a n d c -> TyFun a n <$> (traverse f d) <*> f c
