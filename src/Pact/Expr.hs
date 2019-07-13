@@ -31,22 +31,22 @@ module Pact.Expr
 , _TypedValue
 , _Anonymous
 , _Hole
-)where
+) where
 
 
 import Control.Lens
 
+import Data.List.NonEmpty
 import Data.Text
 
 import Pact.AST.Literals
 import Pact.AST.SourcePos
+import Pact.Binders
 import Pact.Names
 import Pact.Types
 
 
-
 type Declaration = Int
-type Binder = Int
 
 data Expr
   = Literal SourceSpan (Literal Expr)
@@ -59,7 +59,7 @@ data Expr
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
   | Let Declaration Expr
     -- ^ let expressions
-  | LetRec [Declaration] Expr
+  | LetRec (NonEmpty Declaration) Expr
     -- ^ recursive let expressions (separate from above for perf reasons)
   | IfThenElse Expr Expr Expr
     -- ^ if/then/else trees

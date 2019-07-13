@@ -41,9 +41,9 @@ import Pact.Types
 
 
 data Binder
-  = LiteralBinder SourceSpan (Literal Binder)
+  = LiteralBinder SourceSpan !(Literal Binder)
     -- ^ Literal bindings at some span
-  | VarBinder SourceSpan Ident
+  | VarBinder SourceSpan !Ident
     -- ^ Variable bindings at some span
   | NamedBinder SourceSpan Ident Binder
     -- ^ Bind an input to an identifier

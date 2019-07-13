@@ -80,16 +80,12 @@ data Prim
 
 makePrisms ''Prim
 
-type Label = Text
-type Module = Text
-type Signature = Text
-
 data Type a
   = TyVar a {-# UNPACK #-} !Text
     -- ^ The type of single type variables
   | TyForall a {-# UNPACK #-} !Text (Kind a) (Type a)
     -- ^ The type of type schema (forall a)
-  | TyBuiltin a !Prim
+  | TyBuiltin a {-# UNPACK #-} !Prim
     -- ^ The type of builtin (primitive) types
   | TyFun a {-# UNPACK #-} !Text (NonEmpty (Type a)) (Type a)
     -- ^ The type of function types and λ-abstractions

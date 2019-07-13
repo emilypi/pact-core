@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -17,7 +19,6 @@
 module Pact.Terms
 ( -- * Data
   Builtin(..)
-, Constant(..)
 , Term(..)
 , RowSort(..)
   -- * Traversals
@@ -89,7 +90,7 @@ data Term a
     -- and binding var names to row entries
   | Error a (Type a)
     -- ^ the type of error terms
-  deriving (Show, Functor, Generic, NFData)
+  deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Term
 
 subterms :: Traversal' (Term a) (Term a)
