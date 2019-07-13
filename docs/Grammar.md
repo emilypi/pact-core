@@ -8,8 +8,8 @@ Note: happy is more efficient in parsing left-recursive s-expressions, so the gr
 ```ebnf
 (* A program is a collection of modules and expressions *)
 program        ::= top_level_list
-top_level_list ::=    module top_level_list | 
-                        expr top_level_list | 
+top_level_list ::=    module top_level_list |
+                        expr top_level_list |
                    interface top_level_list | ε
 
 module ::= '(' 'module' ident kset doc_or_meta decl_list ')'
@@ -28,11 +28,13 @@ defun ::= 'defun' '(' fun_args ')' doc_or_meta expr
 defconst ::= 'defconst' ident expr
 defcap ::= 'defcap' ident '(' fun_args ')' doc_or_meta expr
 bless ::= 'bless' hash
-defpact ::= 'defpact' ident '(' fun_args ')' doc_or_meta expr
+defpact ::= 'defpact' ident '(' fun_args ')' doc_or_meta { step }
 defschema ::= 'defschema' ident doc_or_meta fields
 deftable ::= 'deftable' ident [':' ident] doc_or_meta
 use ::= 'use' ident
 implements ::= 'implements' ident
+step ::= '(' 'step' [ string_lit ] expr ')'
+    | '(' 'step-with-rollback' [ string_lit ] expr expr ')'
 
 fields ::= { field }
 field ::= ident ':' ident
@@ -44,7 +46,10 @@ arg ::= ident [':' ident]
 (* documentation for defuns and modules *)
 doc_or_meta ::= doc meta | meta | ε
 doc         ::= '@doc' string
-meta        ::= '@meta' string
+meta        ::= '@model' '[' { models } ']'
+models      ::=  property | invariant
+property    ::= '(' 'property' expr ')'
+invariant   ::= '(' 'invariant' expr ')'
 
 (* Expressions. note: expr lists are nonempty, as () in lisp is nil literal *)
 expr         ::= '(' ne_expr_list ')' | atom
@@ -74,7 +79,8 @@ comma_delimited_list ::= expr comma_delimited_rest | ε
 comma_delimited_rest ::= ',' expr | ε
 object_lit           ::= '{' kv { ',' kv } '}'
 kv                   ::= '\"' ident '\"' ':' expr
-kset                 ::= '[' string ']' | (* Unsure of how to represent this in EBNF *)
+kset                 ::= hashes | '{' 'keys' ':' hashes '}' | {' 'keys' ':' hashes ',' 'pred' ':' pred '}'
+pred                 ::= 'keys-all' | 'keys-1' | 'keys-2'
 
 numbers ::= number { number }
 letter ::= { (uc_letter | lc_letter | '_' ) }
@@ -84,4 +90,5 @@ number    ::= '0' | ... | '9'
 op ::= (* Printable operators *)
 string ::= (* All printable characters *)
 hash ::= (* Todo: is your hash hex encoded? *)
+hashes ::= '[' { hash } ']'
 ```
