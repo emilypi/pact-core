@@ -8,19 +8,23 @@ Note: happy is more efficient in parsing left-recursive s-expressions, so the gr
 ```ebnf
 (* A program is a collection of modules and expressions *)
 program        ::= top_level_list
-top_level_list ::= module top_level_list | 
-                     expr top_level_list | ε
+top_level_list ::=    module top_level_list | 
+                        expr top_level_list | 
+                   interface top_level_list | ε
 
 module ::= '(' 'module' ident kset doc_or_meta decl_list ')'
+interface ::= '(' 'interface' ident doc_or_meta sig_list ')'
 
 (* top level declarations *)
+const_decl ::= defconst
+sig_list ::= defconst | defun_sig
 decl_list ::= imports decls
 imports ::= '(' use ')' { '(' use ')' }
 decls ::=  '(' decl ')' { '(' decl ')' }
 decl      ::= defun | defschema | defconst | defcap | defpact |
               deftable | bless
 
-(* Todo: what is implements? *)
+defun_sig ::= 'defun' '(' fun_args ')' doc_or_meta
 defun ::= 'defun' '(' fun_args ')' doc_or_meta expr
 defconst ::= 'defconst' ident expr
 defcap ::= 'defcap' ident '(' fun_args ')' doc_or_meta expr
@@ -29,7 +33,7 @@ defpact ::= 'defpact' ident '(' fun_args ')' doc_or_meta expr
 defschema ::= 'defschema' ident doc_or_meta fields
 deftable ::= 'deftable' ident [':' ident] doc_or_meta
 use ::= 'use' ident
-kset ::= ident (* Unsure of this one *)
+implements ::= 'implements' ident
 
 fields ::= { field }
 field ::= ident ':' ident
@@ -71,6 +75,7 @@ comma_delimited_list ::= expr comma_delimited_rest | ε
 comma_delimited_rest ::= ',' expr | ε
 object_lit           ::= '{' kv { ',' kv } '}'
 kv                   ::= '\"' ident '\"' ':' expr
+kset                 ::= '[' string ']' | (* Unsure of how to represent this in EBNF *)
 
 numbers ::= number { number }
 letter ::= { (uc_letter | lc_letter | '_' ) }
