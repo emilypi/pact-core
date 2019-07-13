@@ -20,25 +20,22 @@ module Pact.Names
 ( -- * Data
   Ident(..)
 , NameSort(..)
-, RawModule(..)
-, ResolvedModule(..)
 , Namespace(..)
+, NameVisibility(..)
 , FullyQualified(..)
 , NameOrigin(..)
-, BasicName(..)
+, CoreName(..)
 , ModuleName(..)
   -- * Optics
-, rawModule
-, resolvedModule
-, namespace
 , fqName
 , fqModule
 , fqNamesort
-, fqNamespace
-, bName
-, bModule
-, bOrigin
-, bNameSpace
+, fqUnique
+, fqNameVisibility
+, coreName
+, coreModule
+, coreOrigin
+, coreNameSort
   -- * Combinators
 , ppIdent
 ) where
@@ -74,7 +71,6 @@ ppIdent (GenIdent Nothing t) = "$" <> tshow t
 ppIdent (GenIdent (Just n) t) = "$" <> n <> tshow t
 ppIdent UnusedIdent = "$~unused"
 
-
 data NameOrigin
   = LocalOrigin
   | TopLevelOrigin
@@ -85,6 +81,7 @@ data NameOrigin
 data NameSort
   = Private
   | Public
+  | Repl
   deriving (Eq, Ord, Show, Generic, Hashable, NFData)
 
 data NameVisibility
@@ -92,43 +89,30 @@ data NameVisibility
   | Defined
   deriving (Eq, Ord, Show, Generic, Hashable, NFData)
 
-newtype Namespace = Namespace { _namespace :: Text }
+data Namespace
+  = Local {-# UNPACK #-} !Text
+  | Global
   deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-
-namespace :: Lens' Namespace Text
-namespace = lens _namespace (\t b -> t { _namespace = b })
 
 data ModuleName = ModuleName
   { _moduleNamespace :: {-# UNPACK #-} !Namespace
   , _moduleName :: {-# UNPACK #-} !Text
   } deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+makeLenses ''ModuleName
 
-newtype RawModule = RawModule { _rawModule :: Text }
-  deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-
-rawModule :: Lens' RawModule Text
-rawModule = lens _rawModule (\t b -> t { _rawModule = b })
-
-newtype ResolvedModule = ResolvedModule { _resolvedModule :: Text }
-  deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-
-resolvedModule :: Lens' ResolvedModule Text
-resolvedModule = lens _resolvedModule (\t b -> t { _resolvedModule = b })
-
-
-data BasicName = BasicName
-  { _bName :: !Ident
-  , _bNameSpace :: !Namespace
-  , _bOrigin :: !NameOrigin
-  , _bModule :: !RawModule
+data CoreName = CoreName
+  { _coreName :: {-# UNPACK #-} !Text
+  , _coreOrigin :: {-# UNPACK #-} !NameOrigin
+  , _coreModule :: !ModuleName
+  , _coreNameSort :: !NameSort
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)
-makeLenses ''BasicName
+makeLenses ''CoreName
 
 data FullyQualified = FullyQualified
   { _fqName :: {-# UNPACK #-} !Text
   , _fqUnique :: {-# UNPACK #-} !Word64
-  , _fqNamespace :: {-# UNPACK #-} !Namespace
-  , _fqModule :: {-# UNPACK #-} !ResolvedModule
+  , _fqModule :: {-# UNPACK #-} !ModuleName
   , _fqNamesort :: !NameSort
+  , _fqNameVisibility :: !NameVisibility
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)
 makeLenses ''FullyQualified
