@@ -95,14 +95,14 @@ data Namespace
   deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
 data ModuleName = ModuleName
-  { _moduleNamespace :: {-# UNPACK #-} !Namespace
+  { _moduleNamespace :: !Namespace
   , _moduleName :: {-# UNPACK #-} !Text
   } deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 makeLenses ''ModuleName
 
 data CoreName = CoreName
   { _coreName :: {-# UNPACK #-} !Text
-  , _coreOrigin :: {-# UNPACK #-} !NameOrigin
+  , _coreOrigin :: !NameOrigin
   , _coreModule :: !ModuleName
   , _coreNameSort :: !NameSort
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)
@@ -111,7 +111,7 @@ makeLenses ''CoreName
 data FullyQualified = FullyQualified
   { _fqName :: {-# UNPACK #-} !Text
   , _fqUnique :: {-# UNPACK #-} !Word64
-  , _fqModule :: {-# UNPACK #-} !ModuleName
+  , _fqModule :: !ModuleName
   , _fqNamesort :: !NameSort
   , _fqNameVisibility :: !NameVisibility
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)

@@ -29,7 +29,7 @@ module Pact.Types
 , _TyVar
 , _TyFun
 , _TyForall
-, _TyLam
+, _TyAbs
 , _TyApp
 , _TyGuard
 , _TyRow
@@ -90,7 +90,7 @@ data Type a
     -- ^ The type of builtin (primitive) types
   | TyFun a {-# UNPACK #-} !Text (NonEmpty (Type a)) (Type a)
     -- ^ The type of function types and λ-abstractions
-  | TyLam a (Kind a) (Type a)
+  | TyAbs a (Kind a) (Type a)
     -- ^ The type of Λ-abstractions
   | TyApp a (Type a) (Type a)
     -- ^ The type of β-reducible types

@@ -46,20 +46,18 @@ import Pact.Terms
 data Module a = Module
   { _moduleName :: !ModuleName
   , _moduleDefns :: [Declaration a]
-  , _moduleExports :: [Text]
-  , _moduleImports :: [ModuleName]
-  , _moduleConstraints :: [ModuleName]
+  , _moduleExports :: [FullyQualified]
+  , _moduleImports :: [FullyQualified]
+  , _moduleConstraints :: [FullyQualified]
   , _moduleTerms :: [Term a]
   } deriving (Eq, Show, Functor, Generic, NFData)
-
 makeLenses ''Module
 
 
 data Interface a = Interface
   { _interfaceName :: !ModuleName
   , _interfaceDefns :: [Declaration a]
-  , _interfaceImports :: [ModuleName]
+  , _interfaceImports :: [FullyQualified]
   , _interfaceTerms :: [Term a]
   } deriving (Eq, Show, Functor, Generic, NFData)
-
 makeLenses ''Interface
