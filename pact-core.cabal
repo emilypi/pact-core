@@ -25,11 +25,13 @@ library
                      , Pact.Terms
                      , Pact.Types
                      , Pact.Utils
-  -- other-modules:
-  -- other-extensions:
+
+  other-modules:       Data.Decimal.Orphans
+
   build-depends:       base ^>=4.11.1.0
                      , aeson
                      , bytestring
+                     , cereal
                      , concurrent-supply
                      , containers
                      , Decimal

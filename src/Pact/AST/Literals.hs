@@ -24,7 +24,6 @@ module Pact.AST.Literals
 , _LitList
 , _LitString
 , _LitBool
-, _LitUint
 , _LitObject
 ) where
 
@@ -33,13 +32,12 @@ import GHC.Generics
 import Control.DeepSeq
 import Control.Lens
 
+import Data.Decimal
+import Data.Decimal.Orphans
 import Data.Hashable
 import Data.HashMap.Strict
 import Data.Text
-import Data.Word
 
-
-type Decimal = Double
 type Time = Double
 
 data Literal a
@@ -47,17 +45,15 @@ data Literal a
     -- ^ Arbitrary precision integer literals
   | LitDecimal Decimal
     -- ^ 256-figure integer.mantissa-flavored decimals
-  | LitTime    Time
+  | LitTime Time
     -- ^ UTC-time literals
-  | LitList    [a]
+  | LitList [a]
     -- ^ Haskell list literals
-  | LitObject  (HashMap Text a)
+  | LitObject (HashMap Text a)
     -- ^ Object (row) literals as hashmaps of labels and values
-  | LitString  {-# UNPACK #-} !Text
+  | LitString {-# UNPACK #-} !Text
     -- ^ Literal UTF-8 encoded text strings
-  | LitBool    {-# UNPACK #-} !Bool
+  | LitBool !Bool
     -- ^ Literal boolean values
-  | LitUint    {-# UNPACK #-} !Word64
-    -- ^ Unsigned 64-bit word literals
-  deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Hashable, Generic, NFData)
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Literal

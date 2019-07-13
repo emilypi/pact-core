@@ -52,6 +52,7 @@ import Control.DeepSeq
 import Control.Lens
 
 import Data.Functor.Foldable
+import Data.Hashable
 import Data.HashMap.Lazy as HashMap
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
@@ -85,7 +86,7 @@ data Type a
     -- ^ The type of single type variables
   | TyForall a {-# UNPACK #-} !Text (Kind a) (Type a)
     -- ^ The type of type schema (forall a)
-  | TyBuiltin a {-# UNPACK #-} !Prim
+  | TyBuiltin a !Prim
     -- ^ The type of builtin (primitive) types
   | TyFun a {-# UNPACK #-} !Text (NonEmpty (Type a)) (Type a)
     -- ^ The type of function types and λ-abstractions
@@ -108,12 +109,13 @@ data Type a
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable, NFData, Generic)
 makePrisms ''Type
 
+
 data TypeSort
   = Primitive
   | Security
   | Local
   | Scoped
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
 tyvars :: Traversal' (Type a) Text
 tyvars = _TyVar . traverse

@@ -36,7 +36,9 @@ import GHC.Generics
 
 import Control.DeepSeq
 import Control.Lens
+
 import Data.Text
+import Data.Hashable
 
 -- | The Pact kind system
 --

@@ -18,8 +18,7 @@
 --
 module Pact.Terms
 ( -- * Data
-  Builtin(..)
-, Term(..)
+  Term(..)
 , RowSort(..)
   -- * Traversals
 , subtypes
@@ -30,6 +29,7 @@ module Pact.Terms
 , _Let
 , _App
 , _Lit
+, _Fun
 , _Annot
 , _Row
 , _Error
@@ -41,12 +41,14 @@ module Pact.Terms
 , pattern DefSchema
 ) where
 
+
 import GHC.Generics
 
 import Control.DeepSeq
 import Control.Lens
 
 import Data.Functor.Foldable
+import Data.Hashable
 import Data.HashMap.Lazy
 import Data.List.NonEmpty as NonEmpty
 import Data.Text
@@ -56,18 +58,15 @@ import Pact.AST.Literals
 import Pact.Types hiding (subtypes)
 
 
-data Builtin a = BuiltinName a String
-  deriving (Eq, Show, Functor, Generic, NFData)
-
 -- | Is it a Schema or Table metaphor?
 data RowSort = Object | Schema | Table
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
 data FunPosition
   = Native
   | Capability
   | User
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Show, Generic, NFData, Hashable)
 
 
 data Term a

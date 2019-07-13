@@ -26,6 +26,7 @@ module Pact.Names
 , FullyQualified(..)
 , NameOrigin(..)
 , BasicName(..)
+, ModuleName(..)
   -- * Optics
 , rawModule
 , resolvedModule
@@ -97,6 +98,11 @@ newtype Namespace = Namespace { _namespace :: Text }
 namespace :: Lens' Namespace Text
 namespace = lens _namespace (\t b -> t { _namespace = b })
 
+data ModuleName = ModuleName
+  { _moduleNamespace :: {-# UNPACK #-} !Namespace
+  , _moduleName :: {-# UNPACK #-} !Text
+  } deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+
 newtype RawModule = RawModule { _rawModule :: Text }
   deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
@@ -120,7 +126,7 @@ makeLenses ''BasicName
 
 data FullyQualified = FullyQualified
   { _fqName :: {-# UNPACK #-} !Text
-  , _fqUnique :: {-# UNPACK #-} !Int
+  , _fqUnique :: {-# UNPACK #-} !Word64
   , _fqNamespace :: {-# UNPACK #-} !Namespace
   , _fqModule :: {-# UNPACK #-} !ResolvedModule
   , _fqNamesort :: !NameSort

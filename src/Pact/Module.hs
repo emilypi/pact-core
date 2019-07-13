@@ -4,21 +4,25 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
+-- |
 -- Copyright :  (c) Emily Pillmore 2019-2019
 -- License   :  BSD-2-Clause
 -- Maintainer:  Emily Pillmore <emily@kadena.io>
 -- Stability :  experimental
 -- Portability: non-portable
 --
--- Pact declarations
+-- The pact modules
 --
-module Pact.Declaration
-( Declaration(..)
-  -- * Prisms
-, _TermDecl
-, _ConstantDecl
+module Pact.Module
+( Module(..)
+  -- * Lenses
+, moduleName
+, moduleDefns
+, moduleExports
+, moduleTerms
 ) where
 
 
@@ -26,18 +30,19 @@ import GHC.Generics
 
 import Control.DeepSeq
 import Control.Lens
+
 import Data.Hashable
 import Data.Text
 
-import Pact.AST.Literals
+import Pact.Declaration
+import Pact.Names
 import Pact.Terms
-import Pact.Types
 
+data Module a  = Module
+  { _moduleName :: !ModuleName
+  , _moduleDefns :: [Declaration a]
+  , _moduleExports :: [Text]
+  , _moduleTerms :: [Term a]
+  } deriving (Eq, Show, Functor, Eq, Generic, NFData)
 
-type CoreName = Int
-
-data Declaration a
-  = TermDecl CoreName (Term a) (Type a)
-  | ConstantDecl CoreName !(Literal a)
-  deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData, Hashable)
-makePrisms ''Declaration
+makeLenses ''Module
