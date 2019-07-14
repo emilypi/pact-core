@@ -49,7 +49,7 @@ import Pact.Types
 import Pact.Terms
 
 
-data Yield a = Yield a {-# UNPACK #-} !Text (Term a) (Type a)
+data Yield a = Yield a (Term a) (Type a)
   deriving (Show, Eq, Functor, Foldable, Traversable, Generic, NFData)
 
 data Resume a = Resume a (Term a) (Type a)
