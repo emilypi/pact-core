@@ -1,1 +1,0 @@
-module Pact.Core where
