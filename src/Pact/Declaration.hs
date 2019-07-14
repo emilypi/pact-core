@@ -30,6 +30,7 @@ import Data.Hashable
 import Data.Text
 
 import Pact.AST.Literals
+import Pact.Defpact
 import Pact.Names
 import Pact.Terms
 import Pact.Types
@@ -38,6 +39,7 @@ import Pact.Types
 data Declaration a
   = TermDecl {-# UNPACK #-} !Text (Term a) (Type a)
   | ConstantDecl {-# UNPACK #-} !Text !(Literal a)
+  | PactDecl {-# UNPACK #-} !Text (Defpact a)
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration
 

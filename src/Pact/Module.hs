@@ -23,10 +23,8 @@ module Pact.Module
 , moduleDefns
 , moduleExports
 , moduleImports
-, moduleTerms
 , interfaceName
 , interfaceDefns
-, interfaceTerms
 , interfaceImports
 ) where
 
@@ -49,7 +47,6 @@ data Module a = Module
   , _moduleExports :: [FullyQualified]
   , _moduleImports :: [FullyQualified]
   , _moduleConstraints :: [FullyQualified]
-  , _moduleTerms :: [Term a]
   } deriving (Eq, Show, Functor, Generic, NFData)
 makeLenses ''Module
 
@@ -58,6 +55,5 @@ data Interface a = Interface
   { _interfaceName :: !ModuleName
   , _interfaceDefns :: [Declaration a]
   , _interfaceImports :: [FullyQualified]
-  , _interfaceTerms :: [Term a]
   } deriving (Eq, Show, Functor, Generic, NFData)
 makeLenses ''Interface

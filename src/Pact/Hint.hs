@@ -1,4 +1,6 @@
-module Pact.Hint where
+module Pact.Hint
+( ErrorHint(..)
+) where
 
 
 import Data.List.NonEmpty
@@ -9,18 +11,18 @@ import Pact.Expr
 import Pact.Names
 import Pact.Types
 
-type Expr = Expr SourceAnn
+type SExpr = Expr SourceAnn
 
 data ErrorHint
   = ErrorUnifyingTypes (Type SourceAnn) (Type SourceAnn)
-  | ErrorInExpression Expr
+  | ErrorInExpression SExpr
   | ErrorInModule ModuleName
   | ErrorInSubsumption (Type SourceAnn) (Type SourceAnn)
-  | ErrorCheckingAccessor Expr {-# UNPACK #-} !Text
-  | ErrorCheckingType Expr (Type SourceAnn)
+  | ErrorCheckingAccessor SExpr {-# UNPACK #-} !Text
+  | ErrorCheckingType SExpr (Type SourceAnn)
   | ErrorCheckingKind (Type SourceAnn)
-  | ErrorInferringType Expr
-  | ErrorInApplication Expr (Type SourceAnn) Expr
+  | ErrorInferringType SExpr
+  | ErrorInApplication SExpr (Type SourceAnn) SExpr
   | ErrorInBindingGroup (NonEmpty Ident)
   | ErrorInValueDeclaration Ident
   | ErrorInTypeDeclaration Ident

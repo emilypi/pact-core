@@ -52,7 +52,7 @@ data Expr a
     -- ^ individual variable expressions with source pos
   | App a (Expr a) (Expr a)
     -- ^ expression application
-  | Fun a Ident (Expr a)
+  | Lam a Ident (Expr a)
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
   | Let (Declaration a) (Expr a)
     -- ^ let expressions

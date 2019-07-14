@@ -8,6 +8,7 @@ import Data.HashMap.Lazy
 
 import Pact.AST.SourcePos
 import Pact.Environment
+import Pact.Hint
 import Pact.Kinds
 import Pact.Names
 import Pact.Types
@@ -33,19 +34,19 @@ data CheckState = CheckState
     -- ^ The current @Environment@
   , _checkSupply :: Supply
     -- ^ the current supply state
-  , _checkNextType :: {-# UNPACK #-} Int
+  , _checkNextType :: {-# UNPACK #-} !Int
     -- ^ The next type unification variable
-  , _checkNextKind :: {-# UNPACK #-} Int
+  , _checkNextKind :: {-# UNPACK #-} !Int
     -- ^ The next kind unification variable
-  , _checkNextSkolem :: {-# UNPACK #-} Int
-    -- ^ The next skolem variable
-  , _checkNextSkolemScope :: {-# UNPACK #-} Int
+  , _checkNextSkolem :: {-# UNPACK #-} !Int
+    -- ^ The next skolem variable1
+  , _checkNextSkolemScope :: {-# UNPACK #-} !Int
     -- ^ The next skolem scope constant
   , _checkCurrentModule :: Maybe ModuleName
     -- ^ The current module
   , _checkSubstitution :: Substitution
     -- ^ The current substitution
-  , _checkHints :: [ErrorMessageHint]
+  , _checkHints :: [ErrorHint]
     -- ^ The current error message hint stack.
     -- This goes into state, rather than using 'rethrow',
     -- since this way, we can provide good error messages
