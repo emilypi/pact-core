@@ -19,7 +19,6 @@ library
   exposed-modules:     Pact.AST.SourcePos
                      , Pact.AST.Literals
                      , Pact.Environment
-                     , Pact.Binders
                      , Pact.Kinds
                      , Pact.Names
                      , Pact.Terms

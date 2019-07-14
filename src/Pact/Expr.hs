@@ -41,7 +41,6 @@ import Data.Text
 
 import Pact.AST.Literals
 import Pact.AST.SourcePos
-import Pact.Binders
 import Pact.Declaration
 import Pact.Names
 import Pact.Types
