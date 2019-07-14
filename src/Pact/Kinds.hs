@@ -37,19 +37,22 @@ import GHC.Generics
 import Control.DeepSeq
 import Control.Lens
 
-import Data.Text
 import Data.Hashable
+import Data.List.NonEmpty
+import Data.Text
+import Data.Word
+
 
 -- | The Pact kind system
 --
 data Kind a
   = KType a
     -- ^ The kind of concrete types (i.e. * or Type)
-  | KArrow a (Kind a) (Kind a)
+  | KArrow a (NonEmpty (Kind a)) (Kind a)
     -- ^ The kind of kind-level arrows Type -> Type
   | KRow a [Kind a]
     -- ^ The kind of row-types
-  | KHole a {-# UNPACK #-} !Int
+  | KHole a {-# UNPACK #-} !Word64
     -- ^ The kind of unknown kinds Kind : Kind - used for unification
   | KConstraint a
     -- ^ The kind of functor constraints of modules
@@ -61,17 +64,21 @@ makePrisms ''Kind
 instance Show a => Show (Kind a) where
   show = \case
     KType _ -> "Type"
-    KArrow _ t u -> show t <> " -> " <> show u
+    KArrow _ (k:|[]) k' -> "(" <> show k <> " -> " <> show k' <> ")"
+    KArrow _ ks k' -> go (toList ks) <> " -> " <> show k'
     KHole _ i -> "_" <> show i
     KConstraint _ -> "Constraint"
     KRow _ r -> show $ fmap show r
     KCapability _ -> "Capability"
+   where
+     go [k] = show k
+     go (k:ks) = "(" <> show k <> " -> " <> go ks <> ")"
 
 -- | Traverse over all subkinds of a given kind
 --
 subkinds :: Traversal' (Kind a) (Kind a)
 subkinds f = \case
-  KArrow a k k' -> KArrow a <$> f k <*> f k'
+  KArrow a k k' -> KArrow a <$> traverse f k <*> f k'
   KRow a ks -> KRow a <$> traverse f ks
   k -> pure k
 {-# INLINABLE subkinds #-}

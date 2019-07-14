@@ -19,6 +19,9 @@ module Pact.Declaration
   -- * Prisms
 , _TermDecl
 , _ConstantDecl
+  -- * Synonyms
+, RawDecl
+, ResolvedDecl
 ) where
 
 
@@ -29,14 +32,20 @@ import Control.Lens
 import Data.Hashable
 import Data.Text
 
+import Pact.AST.SourcePos
 import Pact.AST.Literals
 import Pact.Names
 import Pact.Terms
 import Pact.Types
 
+-- | Unresolved Decls
+type RawDecl = Declaration BasicName SourceAnn
+
+-- | Resoloved decls with qualified names
+type ResolvedDecl = Declaration FullyQualified SourceAnn
 
 data Declaration n a
-  = TermDecl n (Term n a) (Type n a)
+  = TermDecl n (Term n a)
   | ConstantDecl n !(Literal a)
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration
@@ -44,10 +53,5 @@ makePrisms ''Declaration
 
 terms :: Traversal' (Declaration n a) (Term n a)
 terms f = \case
-  TermDecl n t ty -> (\t' -> TermDecl n t' ty) <$> f t
-  t -> pure t
-
-types :: Traversal' (Declaration n a) (Type n a)
-types f = \case
-  TermDecl n t ty -> TermDecl n t <$> f ty
+  TermDecl n t -> TermDecl n <$> f t
   t -> pure t

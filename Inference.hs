@@ -14,16 +14,25 @@
 --
 -- Pact declarations
 --
-module Pact.Typechecker where
+module Pact.Inference where
 
 import Control.Concurrent.Supply
 import Control.Monad.State
 
 import Data.HashMap.Strict
+
 import Data.Text
 import Data.Word
 
-
+import Pact.Aliases
+import Pact.AST.SourcePos
+import Pact.Check
 import Pact.Declaration
+import Pact.Kinds
+import Pact.Module
 import Pact.Terms
 import Pact.Types
+
+
+inferDecl :: RawDecl -> InferM ()
+inferDecl (ConstantDecl n l) = undefined

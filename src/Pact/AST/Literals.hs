@@ -47,7 +47,7 @@ data Literal a
     -- ^ 256-figure integer.mantissa-flavored decimals
   | LitTime Time
     -- ^ UTC-time literals
-  | LitList [a]
+  | LitList [Literal a]
     -- ^ Haskell list literals
   | LitObject (HashMap Text (Literal a))
     -- ^ Object (row) literals as hashmaps of labels and values

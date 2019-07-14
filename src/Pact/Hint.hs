@@ -6,24 +6,22 @@ module Pact.Hint
 import Data.List.NonEmpty
 import Data.Text
 
+import Pact.Aliases
 import Pact.AST.SourcePos
 import Pact.Expr
 import Pact.Names
 import Pact.Types
 
-type SExpr = Expr SourceAnn
-type NamedType = Type BasicName SourceAnn
-
 data ErrorHint
-  = ErrorUnifyingTypes NamedType NamedType
+  = ErrorUnifyingTypes RawType RawType
   | ErrorInExpression SExpr
   | ErrorInModule ModuleName
-  | ErrorInSubsumption NamedType NamedType
+  | ErrorInSubsumption RawType RawType
   | ErrorCheckingAccessor SExpr {-# UNPACK #-} !Text
-  | ErrorCheckingType SExpr NamedType
-  | ErrorCheckingKind NamedType
+  | ErrorCheckingType SExpr RawType
+  | ErrorCheckingKind RawType
   | ErrorInferringType SExpr
-  | ErrorInApplication SExpr NamedType SExpr
+  | ErrorInApplication SExpr RawType SExpr
   | ErrorInBindingGroup (NonEmpty Ident)
   | ErrorInValueDeclaration Ident
   | ErrorInTypeDeclaration Ident

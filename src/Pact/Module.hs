@@ -17,15 +17,27 @@
 -- The pact modules
 --
 module Pact.Module
-( Module(..)
+( RawModule(..)
+, ResolvedModule(..)
+, RawInterface(..)
+, ResolvedInterface(..)
   -- * Lenses
 , moduleName
 , moduleDefns
 , moduleExports
 , moduleImports
+, moduleConstraints
+, mrawName
+, mrawDefns
+, mrawExports
+, mrawImports
+, mrawConstraints
 , interfaceName
 , interfaceDefns
 , interfaceImports
+, irawName
+, irawDefns
+, irawImports
 ) where
 
 
@@ -38,22 +50,39 @@ import Data.Hashable
 import Data.Text
 
 import Pact.Declaration
+import Pact.Expr
 import Pact.Names
 import Pact.Terms
 
-data Module a = Module
+
+data RawModule = Module
+  { _mrawName :: !ModuleName
+  , _mrawDefns :: [RawDecl]
+  , _mrawExports :: [BasicName]
+  , _mrawImports :: [ModuleName]
+  , _mrawConstraints :: [ModuleName]
+  } deriving (Eq, Show, Generic, NFData)
+makeLenses ''RawModule
+
+data ResolvedModule = ResolvedModule
   { _moduleName :: !ModuleName
-  , _moduleDefns :: [Declaration FullyQualified a]
+  , _moduleDefns :: [ResolvedDecl]
   , _moduleExports :: [FullyQualified]
-  , _moduleImports :: [FullyQualified]
-  , _moduleConstraints :: [FullyQualified]
-  } deriving (Eq, Show, Functor, Generic, NFData)
-makeLenses ''Module
+  , _moduleImports :: [ResolvedDecl]
+  , _moduleConstraints :: [ModuleName]
+  }
+makeLenses ''ResolvedModule
 
+data RawInterface = RawInterface
+  { _irawName :: !ModuleName
+  , _irawDefns :: [RawDecl]
+  , _irawImports :: [ModuleName]
+  } deriving (Eq, Show, Generic, NFData)
+makeLenses ''RawInterface
 
-data Interface a = Interface
+data ResolvedInterface = ResolvedInterface
   { _interfaceName :: !ModuleName
-  , _interfaceDefns :: [Declaration FullyQualified a]
-  , _interfaceImports :: [FullyQualified]
-  } deriving (Eq, Show, Functor, Generic, NFData)
-makeLenses ''Interface
+  , _interfaceDefns :: [ResolvedDecl]
+  , _interfaceImports :: [ModuleName]
+  } deriving (Eq, Show, Generic, NFData)
+makeLenses ''ResolvedInterface

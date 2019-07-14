@@ -1,26 +1,26 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Pact.Check
+module Pact.Infer
 ( -- * Data
   Substitution(..)
-, CheckState(..)
+, InferState(..)
   -- * Types
-, TypeCheckM
+, InferM
   -- * Combinators
 , emptySubstitution
-, emptyCheckState
-, runTypeCheckM
+, emptyInferState
+, runInferM
   -- * Optics
 , substType
 , substKind
-, checkEnv
-, checkSupply
-, checkNextType
-, checkNextKind
-, checkNextSkolem
-, checkNextSkolemScope
-, checkSubstitution
-, checkHints
+, inferEnv
+, inferSupply
+, inferNextType
+, inferNextKind
+, inferNextSkolem
+, inferNextSkolemScope
+, inferSubstitution
+, inferHints
 ) where
 
 
@@ -33,6 +33,7 @@ import Control.Monad.State
 
 import Data.HashMap.Lazy
 
+import Pact.Aliases
 import Pact.AST.SourcePos
 import Pact.Environment
 import Pact.Hint
@@ -44,7 +45,7 @@ import Pact.Types
 
 -- | A substitution of unification variables for types or kinds
 data Substitution = Substitution
-  { _substType :: HashMap Int NamedType
+  { _substType :: HashMap Int RawType
     -- ^ Type substitution
   , _substKind :: HashMap Int SourcedKind
     -- ^ Kind substitution
@@ -55,41 +56,41 @@ makeLenses ''Substitution
 emptySubstitution :: Substitution
 emptySubstitution = Substitution mempty mempty
 
--- | State required for type checking
-data CheckState = CheckState
-  { _checkEnv :: Environment
+-- | State required for type infering
+data InferState = InferState
+  { _inferEnv :: Environment
     -- ^ The current @Environment@
-  , _checkSupply :: Supply
-    -- ^ the current supply state
-  , _checkNextType :: {-# UNPACK #-} !Int
+  , _inferNextType :: {-# UNPACK #-} !Int
     -- ^ The next type unification variable
-  , _checkNextKind :: {-# UNPACK #-} !Int
+  , _inferNextKind :: {-# UNPACK #-} !Int
     -- ^ The next kind unification variable
-  , _checkNextSkolem :: {-# UNPACK #-} !Int
+  , _inferNextSkolem :: {-# UNPACK #-} !Int
     -- ^ The next skolem variable1
-  , _checkNextSkolemScope :: {-# UNPACK #-} !Int
+  , _inferNextSkolemScope :: {-# UNPACK #-} !Int
     -- ^ The next skolem scope constant
-  , _checkCurrentModule :: Maybe ModuleName
+  , _inferCurrentModule :: Maybe ModuleName
     -- ^ The current module
-  , _checkSubstitution :: Substitution
+  , _inferSubstitution :: Substitution
     -- ^ The current substitution
-  , _checkHints :: [ErrorHint]
+  , _inferHints :: [ErrorHint]
     -- ^ The current error message hint stack.
     -- This goes into state, rather than using 'rethrow',
     -- since this way, we can provide good error messages
     -- during instance resolution.
+  , _inferSupply :: Supply
+    -- ^ the current supply state
   } deriving Show
-makeLenses ''CheckState
+makeLenses ''InferState
 
--- | Create an empty @CheckState@
-emptyCheckState :: Environment -> IO CheckState
-emptyCheckState env = (\s -> CheckState env s 0 0 0 0 Nothing emptySubstitution []) <$> newSupply
+-- | Create an empty @InferState@
+emptyInferState :: IO InferState
+emptyInferState = InferState initEnvironment 0 0 0 0 Nothing emptySubstitution [] <$> newSupply
 
--- | The typechecking monad
+-- | The type inference monad
 --
-newtype TypeCheckM a
-    = TypeCheckM { _runTypeCheckM :: ReaderT Environment (StateT CheckState IO) a }
-    deriving (Functor, Applicative, Monad, MonadState CheckState, MonadReader Environment, MonadIO)
+newtype InferM a
+    = InferM { _runInferM :: ReaderT Environment (StateT InferState IO) a }
+    deriving (Functor, Applicative, Monad, MonadState InferState, MonadReader Environment, MonadIO)
 
-runTypeCheckM :: Environment -> CheckState -> TypeCheckM a -> IO (a, CheckState)
-runTypeCheckM e st (TypeCheckM m) = runStateT (runReaderT m e) st
+runInferM :: Environment -> InferState -> InferM a -> IO (a, InferState)
+runInferM e st (InferM m) = runStateT (runReaderT m e) st

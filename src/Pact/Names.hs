@@ -33,14 +33,14 @@ module Pact.Names
 , fqNamesort
 , fqUnique
 , fqNameVisibility
+, fqArity
+, fqSaturation
 , basicName
 , basicModule
 , basicOrigin
-, basicNameSort
-, basicArity
-, basicSaturation
   -- * Combinators
 , ppIdent
+, coreName
 ) where
 
 
@@ -102,17 +102,15 @@ data Saturation = Saturated | Unsaturated
 
 data ModuleName = ModuleName
   { _moduleNamespace :: !Namespace
-  , _moduleName :: {-# UNPACK #-} !Text
+  , _moduleName :: !(Maybe Text)
   } deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 makeLenses ''ModuleName
+
 
 data BasicName = BasicName
   { _basicName :: {-# UNPACK #-} !Text
   , _basicOrigin :: !NameOrigin
   , _basicModule :: !ModuleName
-  , _basicNameSort :: !NameSort
-  , _basicArity :: {-# UNPACK #-} !Word64
-  , _basicSaturation :: !Saturation
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)
 makeLenses ''BasicName
 
@@ -122,6 +120,11 @@ data FullyQualified = FullyQualified
   , _fqUnique :: {-# UNPACK #-} !Word64
   , _fqModule :: !ModuleName
   , _fqNamesort :: !NameSort
+  , _fqArity :: {-# UNPACK #-} !Word64
+  , _fqSaturation :: Saturation
   , _fqNameVisibility :: !NameVisibility
   } deriving (Eq, Ord, Show, Hashable, Generic, NFData)
 makeLenses ''FullyQualified
+
+coreName :: Text -> BasicName
+coreName n = BasicName n BuiltInOrigin (ModuleName Global Nothing)

@@ -17,13 +17,13 @@
 module Pact.Expr
 ( -- * Data
   Expr(..)
+, BindSort
   -- * Prisms
 , _Literal
 , _Var
 , _App
 , _Lam
 , _Let
-, _LetRec
 , _IfThenElse
 , _PositionalValue
 , _Accessor
@@ -41,32 +41,35 @@ import Data.Text
 
 import Pact.AST.Literals
 import Pact.AST.SourcePos
-import Pact.Declaration
 import Pact.Names
 import Pact.Types
 
-data Expr a
+data BindSort = Rec | NonRec
+  deriving Show
+
+-- | 'Expr' values are the result of compilation, after the type
+-- inference/checking process with types checked and stripped
+--
+data Expr n a
   = Literal SourceSpan (Literal a)
     -- ^ literal expressions with source pos
-  | Var SourceSpan Ident
+  | Var SourceSpan n
     -- ^ individual variable expressions with source pos
-  | App a (Expr a) (Expr a)
+  | App a (Expr n a) (Expr n a)
     -- ^ expression application
-  | Lam a Ident (Expr a)
+  | Lam a BasicName (Expr n a)
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
-  | Let (Declaration BasicName a) (Expr a)
-    -- ^ let expressions
-  | LetRec (NonEmpty (Declaration BasicName a)) (Expr a)
+  | Let BindSort (NonEmpty (Expr n a)) (Expr n a)
     -- ^ recursive let expressions (separate from above for perf reasons)
-  | IfThenElse (Expr a) (Expr a) (Expr a)
+  | IfThenElse (Expr n a) (Expr n a) (Expr n a)
     -- ^ if/then/else trees
-  | PositionalValue SourceSpan [Comment] (Expr a)
+  | PositionalValue SourceSpan [Comment] (Expr n a)
     -- ^ some value at some source position
-  | Accessor {-# UNPACK #-} !Text (Expr a)
+  | Accessor {-# UNPACK #-} !Text (Expr n a)
     -- ^ object accessors a la x.y
-  | ObjectUpdate (Expr a) (NonEmpty (Text, (Expr a)))
+  | ObjectUpdate (Expr n a) (NonEmpty (Text, (Expr n a)))
     -- ^ object update expressions `(update x { y : foo })`
-  | TypedValue {-# UNPACK #-} !Text (Expr a) (Type BasicName SourceAnn)
+  | TypedValue {-# UNPACK #-} !Text (Expr n a) (Type n a)
     -- ^ typed value expression
   | Anonymous
     -- ^ anonymous placeholder
