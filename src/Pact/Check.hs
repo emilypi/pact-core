@@ -1,8 +1,24 @@
-module Pact.Check where
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+module Pact.Check
+( -- * Data
+  Substitution(..)
+, CheckState(..)
+  -- * Types
+, TypeCheckM
+  -- * Combinators
+, emptySubstitution
+, emptyCheckState
+, runTypeCheckM
+) where
+
+
+import GHC.Generics
 
 import Control.Concurrent.Supply
 import Control.Lens
+import Control.Monad.Reader
+import Control.Monad.State
 
 import Data.HashMap.Lazy
 
@@ -15,13 +31,22 @@ import Pact.Types
 
 
 
+-- | The typechecking monad
+--
+newtype TypeCheckM a
+    = TypeCheckM { _runTypeCheckM :: ReaderT Environment (StateT CheckState IO) a }
+    deriving (Functor, Applicative, Monad, MonadState CheckState, MonadReader Environment, MonadIO)
+
+runTypeCheckM :: Environment -> CheckState -> TypeCheckM a -> IO (a, CheckState)
+runTypeCheckM e st (TypeCheckM m) = runStateT (runReaderT m e) st
+
 -- | A substitution of unification variables for types or kinds
 data Substitution = Substitution
   { substType :: HashMap Int (Type SourceAnn)
     -- ^ Type substitution
   , substKind :: HashMap Int (Kind SourceAnn)
     -- ^ Kind substitution
-  }
+  } deriving Show
 
 -- | An empty substitution
 emptySubstitution :: Substitution
@@ -51,7 +76,8 @@ data CheckState = CheckState
     -- This goes into state, rather than using 'rethrow',
     -- since this way, we can provide good error messages
     -- during instance resolution.
-  }
+  } deriving (Show)
+
 
 -- | Create an empty @CheckState@
 emptyCheckState :: Environment -> IO CheckState
