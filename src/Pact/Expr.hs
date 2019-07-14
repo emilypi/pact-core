@@ -45,28 +45,28 @@ import Pact.Declaration
 import Pact.Names
 import Pact.Types
 
-data Expr
-  = Literal SourceSpan (Literal Expr)
+data Expr a
+  = Literal SourceSpan (Literal a)
     -- ^ literal expressions with source pos
   | Var SourceSpan Ident
     -- ^ individual variable expressions with source pos
-  | App Expr Expr
+  | App a (Expr a) (Expr a)
     -- ^ expression application
-  | Fun Binder Expr
+  | Fun a Ident (Expr a)
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
-  | Let Declaration Expr
+  | Let (Declaration a) (Expr a)
     -- ^ let expressions
-  | LetRec (NonEmpty Declaration) Expr
+  | LetRec (NonEmpty (Declaration a)) (Expr a)
     -- ^ recursive let expressions (separate from above for perf reasons)
-  | IfThenElse Expr Expr Expr
+  | IfThenElse (Expr a) (Expr a) (Expr a)
     -- ^ if/then/else trees
-  | PositionalValue SourceSpan [Comment] Expr
+  | PositionalValue SourceSpan [Comment] (Expr a)
     -- ^ some value at some source position
-  | Accessor {-# UNPACK #-} !Text Expr
+  | Accessor {-# UNPACK #-} !Text (Expr a)
     -- ^ object accessors a la x.y
-  | ObjectUpdate Expr [(Text, Expr)]
+  | ObjectUpdate (Expr a) (NonEmpty (Text, (Expr a)))
     -- ^ object update expressions `(update x { y : foo })`
-  | TypedValue {-# UNPACK #-} !Bool Expr (Type SourceAnn)
+  | TypedValue {-# UNPACK #-} !Text (Expr a) (Type SourceAnn)
     -- ^ typed value expression
   | Anonymous
     -- ^ anonymous placeholder

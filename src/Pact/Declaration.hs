@@ -19,8 +19,6 @@ module Pact.Declaration
   -- * Prisms
 , _TermDecl
 , _ConstantDecl
-, _ImportDecl
-, _CommentDecl
 ) where
 
 
@@ -40,8 +38,6 @@ import Pact.Types
 data Declaration a
   = TermDecl {-# UNPACK #-} !Text (Term a) (Type a)
   | ConstantDecl {-# UNPACK #-} !Text !(Literal a)
-  | ImportDecl !ModuleName
-  | CommentDecl {-# UNPACK #-} !Text
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration
 
