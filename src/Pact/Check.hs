@@ -1,5 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
+{-# LANGUAGE TemplateHaskell #-}
 module Pact.Check
 ( -- * Data
   Substitution(..)
@@ -10,6 +10,17 @@ module Pact.Check
 , emptySubstitution
 , emptyCheckState
 , runTypeCheckM
+  -- * Optics
+, substType
+, substKind
+, checkEnv
+, checkSupply
+, checkNextType
+, checkNextKind
+, checkNextSkolem
+, checkNextSkolemScope
+, checkSubstitution
+, checkHints
 ) where
 
 
@@ -30,28 +41,18 @@ import Pact.Names
 import Pact.Types
 
 
-
--- | The typechecking monad
---
-newtype TypeCheckM a
-    = TypeCheckM { _runTypeCheckM :: ReaderT Environment (StateT CheckState IO) a }
-    deriving (Functor, Applicative, Monad, MonadState CheckState, MonadReader Environment, MonadIO)
-
-runTypeCheckM :: Environment -> CheckState -> TypeCheckM a -> IO (a, CheckState)
-runTypeCheckM e st (TypeCheckM m) = runStateT (runReaderT m e) st
-
 -- | A substitution of unification variables for types or kinds
 data Substitution = Substitution
-  { substType :: HashMap Int (Type SourceAnn)
+  { _substType :: HashMap Int (Type SourceAnn)
     -- ^ Type substitution
-  , substKind :: HashMap Int (Kind SourceAnn)
+  , _substKind :: HashMap Int (Kind SourceAnn)
     -- ^ Kind substitution
   } deriving Show
+makeLenses ''Substitution
 
--- | An empty substitution
+-- | An empty @substitution@
 emptySubstitution :: Substitution
 emptySubstitution = Substitution mempty mempty
-
 
 -- | State required for type checking
 data CheckState = CheckState
@@ -77,8 +78,17 @@ data CheckState = CheckState
     -- since this way, we can provide good error messages
     -- during instance resolution.
   } deriving (Show)
-
+makeLenses ''CheckState
 
 -- | Create an empty @CheckState@
 emptyCheckState :: Environment -> IO CheckState
 emptyCheckState env = (\s -> CheckState env s 0 0 0 0 Nothing emptySubstitution []) <$> newSupply
+
+-- | The typechecking monad
+--
+newtype TypeCheckM a
+    = TypeCheckM { _runTypeCheckM :: ReaderT Environment (StateT CheckState IO) a }
+    deriving (Functor, Applicative, Monad, MonadState CheckState, MonadReader Environment, MonadIO)
+
+runTypeCheckM :: Environment -> CheckState -> TypeCheckM a -> IO (a, CheckState)
+runTypeCheckM e st (TypeCheckM m) = runStateT (runReaderT m e) st
