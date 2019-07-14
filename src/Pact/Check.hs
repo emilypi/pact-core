@@ -41,11 +41,12 @@ import Pact.Names
 import Pact.Types
 
 
+
 -- | A substitution of unification variables for types or kinds
 data Substitution = Substitution
-  { _substType :: HashMap Int (Type SourceAnn)
+  { _substType :: HashMap Int NamedType
     -- ^ Type substitution
-  , _substKind :: HashMap Int (Kind SourceAnn)
+  , _substKind :: HashMap Int SourcedKind
     -- ^ Kind substitution
   } deriving Show
 makeLenses ''Substitution
@@ -77,7 +78,7 @@ data CheckState = CheckState
     -- This goes into state, rather than using 'rethrow',
     -- since this way, we can provide good error messages
     -- during instance resolution.
-  } deriving (Show)
+  } deriving Show
 makeLenses ''CheckState
 
 -- | Create an empty @CheckState@

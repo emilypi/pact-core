@@ -12,17 +12,18 @@ import Pact.Names
 import Pact.Types
 
 type SExpr = Expr SourceAnn
+type NamedType = Type BasicName SourceAnn
 
 data ErrorHint
-  = ErrorUnifyingTypes (Type SourceAnn) (Type SourceAnn)
+  = ErrorUnifyingTypes NamedType NamedType
   | ErrorInExpression SExpr
   | ErrorInModule ModuleName
-  | ErrorInSubsumption (Type SourceAnn) (Type SourceAnn)
+  | ErrorInSubsumption NamedType NamedType
   | ErrorCheckingAccessor SExpr {-# UNPACK #-} !Text
-  | ErrorCheckingType SExpr (Type SourceAnn)
-  | ErrorCheckingKind (Type SourceAnn)
+  | ErrorCheckingType SExpr NamedType
+  | ErrorCheckingKind NamedType
   | ErrorInferringType SExpr
-  | ErrorInApplication SExpr (Type SourceAnn) SExpr
+  | ErrorInApplication SExpr NamedType SExpr
   | ErrorInBindingGroup (NonEmpty Ident)
   | ErrorInValueDeclaration Ident
   | ErrorInTypeDeclaration Ident

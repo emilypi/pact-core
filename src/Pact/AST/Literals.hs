@@ -49,7 +49,7 @@ data Literal a
     -- ^ UTC-time literals
   | LitList [a]
     -- ^ Haskell list literals
-  | LitObject (HashMap Text a)
+  | LitObject (HashMap Text (Literal a))
     -- ^ Object (row) literals as hashmaps of labels and values
   | LitString {-# UNPACK #-} !Text
     -- ^ Literal UTF-8 encoded text strings

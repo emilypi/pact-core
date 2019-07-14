@@ -54,9 +54,9 @@ data Expr a
     -- ^ expression application
   | Lam a Ident (Expr a)
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
-  | Let (Declaration a) (Expr a)
+  | Let (Declaration BasicName a) (Expr a)
     -- ^ let expressions
-  | LetRec (NonEmpty (Declaration a)) (Expr a)
+  | LetRec (NonEmpty (Declaration BasicName a)) (Expr a)
     -- ^ recursive let expressions (separate from above for perf reasons)
   | IfThenElse (Expr a) (Expr a) (Expr a)
     -- ^ if/then/else trees
@@ -66,7 +66,7 @@ data Expr a
     -- ^ object accessors a la x.y
   | ObjectUpdate (Expr a) (NonEmpty (Text, (Expr a)))
     -- ^ object update expressions `(update x { y : foo })`
-  | TypedValue {-# UNPACK #-} !Text (Expr a) (Type SourceAnn)
+  | TypedValue {-# UNPACK #-} !Text (Expr a) (Type BasicName SourceAnn)
     -- ^ typed value expression
   | Anonymous
     -- ^ anonymous placeholder

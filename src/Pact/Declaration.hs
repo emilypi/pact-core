@@ -30,26 +30,24 @@ import Data.Hashable
 import Data.Text
 
 import Pact.AST.Literals
-import Pact.Defpact
 import Pact.Names
 import Pact.Terms
 import Pact.Types
 
 
-data Declaration a
-  = TermDecl {-# UNPACK #-} !Text (Term a) (Type a)
-  | ConstantDecl {-# UNPACK #-} !Text !(Literal a)
-  | PactDecl {-# UNPACK #-} !Text (Defpact a)
+data Declaration n a
+  = TermDecl n (Term n a) (Type n a)
+  | ConstantDecl n !(Literal a)
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Declaration
 
 
-terms :: Traversal' (Declaration a) (Term a)
+terms :: Traversal' (Declaration n a) (Term n a)
 terms f = \case
   TermDecl n t ty -> (\t' -> TermDecl n t' ty) <$> f t
   t -> pure t
 
-types :: Traversal' (Declaration a) (Type a)
+types :: Traversal' (Declaration n a) (Type n a)
 types f = \case
   TermDecl n t ty -> TermDecl n t <$> f ty
   t -> pure t

@@ -31,13 +31,9 @@ module Pact.Terms
 , _Lit
 , _Fun
 , _Annot
-, _Sig
 , _Row
 , _Error
   -- * Patterns
-, pattern DefCap
-, pattern DefNative
-, pattern Defun
 , pattern DefTable
 , pattern DefSchema
 ) where
@@ -56,7 +52,9 @@ import Data.Text
 import Data.Word
 
 import Pact.AST.Literals
+import Pact.Names
 import Pact.Types hiding (subtypes)
+
 
 
 -- | Is it a Row, Schema, or Table metaphor?
@@ -64,71 +62,73 @@ import Pact.Types hiding (subtypes)
 data RowSort = Object | Schema | Table
   deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
--- | Differentiate between the types of function terms
-data FunPosition
-  = Native
-  | Capability
-  | User
-  | Pact
-  deriving (Eq, Show, Generic, NFData, Hashable)
+data PactStep term typ n a = PactStep
+  { _stepName :: Maybe Text
+    -- ^ If labeled, the step name (note: private pacts only)
+  , _stepNumber :: {-# UNPACK #-} !Word64
+    -- ^ step number: uints starting at 0
+  , _stepBody :: term n a
+    -- ^ the step body expression
+  , _stepYield :: term n a
+    -- ^ yield data, if present
+  , _stepResume :: term n a
+    -- ^ resume data, if present (must resume on previous step)
+  , _stepReturnType :: typ n a
+    -- ^ return type spec for return from pact step
+  } deriving (Show, Eq, Functor, Foldable, Traversable, Generic, NFData)
+makeLenses ''PactStep
 
-data Term a
-  = Var a {-# UNPACK #-} !Text
+data PactSort = Public | Private
+  deriving (Show, Eq, Generic, NFData)
+
+data Term n a
+  = Var a n
     -- ^ named variable
-  | Let a {-# UNPACK #-} !Text (Type a) (Term a)
+  | Let a n (Type n a) (Term n a)
     -- ^ let bindings. Note: 'let x:y = m in n' desugars to
     -- (\x:y -> n) m, hence we can just make use of fun and app
-  | App a (NonEmpty (Term a)) (Term a)
+  | App a (Term n a) (NonEmpty (Term n a))
     -- ^ β-reduction
-  | Fun a !FunPosition (Type a) (Term a)
+  | Fun a n (Type n a) (Term n a)
     -- ^ function terms
   | Lit a (Literal a)
     -- ^ constant terms
-  | Annot a (Term a) (Type a)
+  | Annot a (Term n a) (Type n a)
     -- ^ type annotation
-  | Row a !RowSort (Type a) (HashMap Text (Term a))
+  | Row a !RowSort (Type n a) (HashMap Text (Term n a))
     -- ^ row terms as used in bindings, schema/table decls
     -- In practice there is a semantic difference between declaring a row
     -- and binding var names to row entries
-  | Sig a (Type a)
-    -- ^ signature terms representing function types with empty bodies
-  | Error a (Type a)
+  | Step a !PactSort (PactStep Term Type n a)
+    -- ^ step terms
+  | Sequence a (NonEmpty (Term n a))
+    -- ^ sequences of
+  | Error a (Type n a)
     -- ^ the type of error terms
   deriving (Eq, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Term
 
-subterms :: Traversal' (Term a) (Term a)
+subterms :: Traversal' (Term n a) (Term n a)
 subterms f = \case
-  App a t u -> App a <$> (traverse f t) <*> f u
+  App a t u -> App a <$> f t <*> traverse f u
   Let a n ty t -> Let a n ty <$> f t
   Annot a t ty -> (\t' -> Annot a t' ty) <$> f t
-  Fun a p ty t -> Fun a p ty <$> f t
+  Fun a n ty t -> Fun a n ty <$> f t
   t -> pure t
 {-# INLINABLE subterms #-}
 
-subtypes :: Traversal' (Term a) (Type a)
+subtypes :: Traversal' (Term n a) (Type n a)
 subtypes f = \case
   Let a n ty t -> (\ty' -> Let a n ty' t) <$> f ty
   Annot a t ty -> Annot a t <$> f ty
   Error a ty -> Error a <$> f ty
-  Fun a p ty t -> (\ty' -> Fun a p ty' t) <$> f ty
-  Sig a ty -> Sig a <$> f ty
+  Fun a n ty t -> (\ty' -> Fun a n ty' t) <$> f ty
   t -> pure t
 {-# INLINABLE subtypes #-}
 
-vars :: Traversal' (Term a) Text
+vars :: Traversal' (Term n a) n
 vars = _Var . traverse
 {-# INLINABLE vars #-}
-
-sigs :: Traversal' (Term a) (Type a)
-sigs = _Sig . traverse
-{-# INLINABLE sigs #-}
-
--- Patterns for function types
-pattern DefCap a ty t <- Fun a Capability ty t
-pattern Defun a ty t <- Fun a User ty t
-pattern DefNative a ty t <- Fun a Native ty t
-pattern DefPact a ty t <- Fun a Pact ty t
 
 -- Patterns for row types
 pattern DefSchema a ty m <- Row a Schema ty m

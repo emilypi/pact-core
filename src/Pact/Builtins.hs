@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveAnyClass #-}
@@ -12,18 +10,6 @@
 -- Stability :  experimental
 -- Portability: non-portable
 --
--- Pact declarations
+-- Pact builtin data declarations
 --
-module Pact.Typechecker where
-
-import Control.Concurrent.Supply
-import Control.Monad.State
-
-import Data.HashMap.Strict
-import Data.Text
-import Data.Word
-
-
-import Pact.Declaration
-import Pact.Terms
-import Pact.Types
+module Pact.Builtins where

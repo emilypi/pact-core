@@ -29,7 +29,6 @@ module Pact.Types
 , _TyVar
 , _TyFun
 , _TyForall
-, _TyAbs
 , _TyApp
 , _TyGuard
 , _TyRow
@@ -81,25 +80,26 @@ data Prim
 
 makePrisms ''Prim
 
-data Type a
-  = TyVar a {-# UNPACK #-} !Text
+data Type n a
+  = TyVar a n
     -- ^ The type of single type variables
-  | TyForall a {-# UNPACK #-} !Text (Kind a) (Type a)
+  | TyForall a n (Kind a) (Type n a)
     -- ^ The type of type schema (forall a)
   | TyBuiltin a !Prim
     -- ^ The type of builtin (primitive) types
-  | TyFun a {-# UNPACK #-} !Text (NonEmpty (Type a)) (Type a)
+  | TyFun a n (NonEmpty (Type n a)) (Type n a)
     -- ^ The type of function types and λ-abstractions
-  | TyAbs a (Kind a) (Type a)
-    -- ^ The type of Λ-abstractions
-  | TyApp a (Type a) (Type a)
+  | TyApp a (Type n a) (Type n a)
     -- ^ The type of β-reducible types
   | TyGuard a !GuardType
     -- ^ The type of security primitives TODO: pilinearity
-  | TyRow a !(HashMap Text (Type a))
+  | TyRow a !(HashMap Text (Type n a))
     -- ^ The type of finite, heterogenous products (records)
     -- tuples are a trivial case of this where each label is π_n
     -- and each type is the same
+  | TyStep a (Type n a) (Type n a) (Type n a)
+    -- ^ the type of individual pact steps with return type,
+    -- yield type, and resume types
   | TyUnit a
     -- ^ The type of the terminal object in this category
   | TyHole a {-# UNPACK #-} !Word64
@@ -117,14 +117,13 @@ data TypeSort
   | Scoped
   deriving (Eq, Ord, Show, Generic, NFData, Hashable)
 
-tyvars :: Traversal' (Type a) Text
+tyvars :: Traversal' (Type n a) n
 tyvars = _TyVar . traverse
 {-# INLINABLE tyvars #-}
 
-subtypes :: Traversal' (Type a) (Type a)
+subtypes :: Traversal' (Type n a) (Type n a)
 subtypes f = \case
   TyApp a t u -> TyApp a <$> f t <*> f u
-  TyAbs a k t -> TyAbs a k <$> f t
   TyForall a n k t -> TyForall a n k <$> f t
   TyRow a m -> TyRow a <$> traverse f m
   TyFun a n d c -> TyFun a n <$> (traverse f d) <*> f c
