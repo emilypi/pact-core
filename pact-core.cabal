@@ -23,6 +23,7 @@ library
                      , Pact.Declaration
                      , Pact.Environment
                      , Pact.Expr
+                     , Pact.Hint
                      , Pact.Inference
                      , Pact.Kinds
                      , Pact.Module

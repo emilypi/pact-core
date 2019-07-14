@@ -17,20 +17,16 @@
 module Pact.Expr
 ( -- * Data
   Expr(..)
-, BindSort
+, BindSort(..)
   -- * Prisms
 , _Literal
 , _Var
 , _App
-, _Lam
+, _Fun
 , _Let
 , _IfThenElse
-, _PositionalValue
 , _Accessor
 , _ObjectUpdate
-, _TypedValue
-, _Anonymous
-, _Hole
 ) where
 
 
@@ -57,24 +53,16 @@ data Expr n a
     -- ^ individual variable expressions with source pos
   | App a (Expr n a) (Expr n a)
     -- ^ expression application
-  | Lam a BasicName (Expr n a)
+  | Fun a BasicName (Expr n a)
     -- ^ lambda abstraction expressions (defun, defcap, defpact)
   | Let BindSort (NonEmpty (Expr n a)) (Expr n a)
     -- ^ recursive let expressions (separate from above for perf reasons)
   | IfThenElse (Expr n a) (Expr n a) (Expr n a)
     -- ^ if/then/else trees
-  | PositionalValue SourceSpan [Comment] (Expr n a)
-    -- ^ some value at some source position
-  | Accessor {-# UNPACK #-} !Text (Expr n a)
+  | Accessor BasicName (Expr n a)
     -- ^ object accessors a la x.y
-  | ObjectUpdate (Expr n a) (NonEmpty (Text, (Expr n a)))
+  | ObjectUpdate (Expr n a) (NonEmpty (BasicName, (Expr n a)))
     -- ^ object update expressions `(update x { y : foo })`
-  | TypedValue {-# UNPACK #-} !Text (Expr n a) (Type n a)
-    -- ^ typed value expression
-  | Anonymous
-    -- ^ anonymous placeholder
-  | Hole {-# UNPACK #-} !Text
-    -- ^ hole expressions
   deriving Show
 
 makePrisms ''Expr
