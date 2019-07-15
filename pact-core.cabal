@@ -19,15 +19,15 @@ library
   exposed-modules:     Pact.Aliases
                      , Pact.AST.SourcePos
                      , Pact.AST.Literals
-                     , Pact.Infer
                      , Pact.Declaration
-                     , Pact.Environment
+                     , Pact.Env
                      , Pact.Expr
                      , Pact.Hint
                      , Pact.Inference
                      , Pact.Kinds
                      , Pact.Module
                      , Pact.Names
+                     , Pact.Subst
                      , Pact.Terms
                      , Pact.Types
                      , Pact.Utils
