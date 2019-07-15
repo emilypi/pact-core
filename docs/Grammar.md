@@ -12,7 +12,7 @@ top_level_list ::=    module top_level_list |
                         expr top_level_list |
                    interface top_level_list | ε
 
-module ::= '(' 'module' ident kset doc_or_meta decl_list ')'
+module ::= '(' 'module' ident module_guard doc_or_meta decl_list ')'
 interface ::= '(' 'interface' ident doc_or_meta sig_list ')'
 
 (* top level declarations *)
@@ -22,6 +22,8 @@ imports ::= '(' use ')' { '(' use ')' }
 decls ::=  '(' decl ')' { '(' decl ')' }
 decl      ::= defun | defschema | defconst | defcap | defpact |
               deftable | bless
+
+module_guard ::= ident | kset
 
 defun_sig ::= 'defun' '(' fun_args ')' doc_or_meta
 defun ::= 'defun' '(' fun_args ')' doc_or_meta expr
@@ -84,11 +86,12 @@ pred                 ::= 'keys-all' | 'keys-1' | 'keys-2'
 
 numbers ::= number { number }
 letter ::= { (uc_letter | lc_letter | '_' ) }
+alphanumeric ::= uc_letter | lc_letter | number
 uc_letter ::= 'A' | ... | 'Z'
 lc_letter ::= 'a' | ... | 'z'
 number    ::= '0' | ... | '9'
 op ::= (* Printable operators *)
 string ::= (* All printable characters *)
-hash ::= (* Todo: is your hash hex encoded? *)
+hash ::= { alphanumeric } (* yes, this is b64-encoded *)
 hashes ::= '[' { hash } ']'
 ```
