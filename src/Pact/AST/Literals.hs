@@ -32,13 +32,28 @@ import GHC.Generics
 import Control.DeepSeq
 import Control.Lens
 
+import Data.ByteString (ByteString)
 import Data.Decimal
 import Data.Decimal.Orphans
 import Data.Hashable
 import Data.HashMap.Strict
+import Data.Set.NonEmpty (NESet)
 import Data.Text
 
 type Time = Double
+
+newtype KeySetPredicate = KeysetPredicate
+  { getPredicate :: Text
+  } deriving (Eq, Ord, Show, Generic, NFData)
+
+newtype PublicKey = PublicKey
+  { getPublicKey :: ByteString
+  } deriving (Eq, Ord, Show, Generic, NFData)
+
+data KeySet = KeySet
+  { ksPublicKeys :: !(NESet PublicKey)
+  , ksPredicate :: {-# UNPACK #-}!KeySetPredicate
+  } deriving (Eq, Ord, Show, Generic, NFData)
 
 data Literal a
   = LitInteger Integer
@@ -55,5 +70,6 @@ data Literal a
     -- ^ Literal UTF-8 encoded text strings
   | LitBool !Bool
     -- ^ Literal boolean values
+  | LitKeySet KeySet
   deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Literal
