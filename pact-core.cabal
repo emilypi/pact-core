@@ -22,6 +22,7 @@ library
                      , Pact.AST.SourcePos
                      , Pact.Declaration
                      , Pact.Env
+                     , Pact.Environment
                      , Pact.Expr
                      , Pact.Hint
                      , Pact.Inference
