@@ -38,6 +38,10 @@ import Data.Hashable
 import Data.HashMap.Strict
 import Data.Text
 
+--pact imports
+
+import Pact.AST.KeySet
+
 type Time = Double
 
 data Literal a
@@ -55,5 +59,6 @@ data Literal a
     -- ^ Literal UTF-8 encoded text strings
   | LitBool !Bool
     -- ^ Literal boolean values
+  | LitKeySet KeySet
   deriving (Eq, Ord, Show, Functor, Foldable, Traversable, Generic, NFData)
 makePrisms ''Literal

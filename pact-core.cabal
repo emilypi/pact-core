@@ -17,10 +17,12 @@ extra-source-files:  CHANGELOG.md
 
 library
   exposed-modules:     Pact.Aliases
-                     , Pact.AST.SourcePos
+                     , Pact.AST.KeySet
                      , Pact.AST.Literals
+                     , Pact.AST.SourcePos
                      , Pact.Declaration
                      , Pact.Env
+                     , Pact.Environment
                      , Pact.Expr
                      , Pact.Hint
                      , Pact.Inference
